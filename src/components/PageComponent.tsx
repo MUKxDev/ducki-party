@@ -1,0 +1,47 @@
+import Head from "next/head";
+import type { FC, PropsWithChildren } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { Layout } from "./Layout";
+import { Toaster } from "react-hot-toast";
+
+export interface Props {
+  title: string;
+}
+
+const PageComponent: FC<PropsWithChildren<Props>> = ({ title, children }) => {
+  const { data: sessionData } = useSession();
+
+  return (
+    <>
+      <Head>
+        <title>{title}</title>
+      </Head>
+      <main>
+        <Toaster />
+        <div data-theme="dracula">
+          <div>
+            {!sessionData?.user ? (
+              <div className="flex min-h-screen flex-col items-center justify-center">
+                <div className="prose flex flex-col gap-4 text-center">
+                  <h1>Ducki Party</h1>
+                  <div>You need to sign in to view this page</div>
+                  <button
+                    className="btn-accent btn"
+                    type="button"
+                    onClick={() => void signIn()}
+                  >
+                    Sign in
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Layout user={sessionData.user}>{children}</Layout>
+            )}
+          </div>
+        </div>
+      </main>
+    </>
+  );
+};
+
+export default PageComponent;
