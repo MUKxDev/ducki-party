@@ -35,14 +35,12 @@ export default function HomePageComponent() {
   return (
     <div>
       <div>
-        <h1 className="text-center text-4xl font-extrabold leading-10 tracking-tight text-white sm:text-5xl sm:leading-none md:text-6xl xl:text-7xl">
+        <h1 className="text-center text-4xl font-extrabold leading-10 tracking-tight  sm:text-5xl sm:leading-none md:text-6xl xl:text-7xl">
           <span className="block">Simplify the way you</span>{" "}
-          <span className="relative mt-3 inline-block text-white">
-            hang together
-          </span>
+          <span className="relative mt-3 inline-block">hang together</span>
         </h1>
         <div
-          className="mx-auto mt-6 max-w-lg text-center text-sm text-indigo-200 sm:text-base md:mt-12 md:max-w-xl md:text-lg xl:text-xl"
+          className="mx-auto mt-6 max-w-lg text-center text-sm text-base-content/60 sm:text-base md:mt-12 md:max-w-xl md:text-lg xl:text-xl"
           data-primary="indigo-200"
         >
           this simple website was built by Ducki to help you do activities with

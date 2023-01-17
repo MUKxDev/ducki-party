@@ -2,12 +2,15 @@ import { type User } from "next-auth";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import React, { type PropsWithChildren, type FC } from "react";
+import { useAppContext } from "../context/AppContext";
 
 interface Props {
   user: User;
 }
 
 export const Layout: FC<PropsWithChildren<Props>> = ({ user, children }) => {
+  const { darkMode, updateDarkMode } = useAppContext();
+
   return (
     <div className="flex h-screen flex-col items-center justify-center ">
       <div className="w-full p-3">
@@ -17,7 +20,16 @@ export const Layout: FC<PropsWithChildren<Props>> = ({ user, children }) => {
               Ducki Party
             </Link>
           </div>
-          <div className="flex-none">
+          <div className="flex gap-3">
+            <input
+              className={`toggle ${!darkMode ? "toggle-primary" : ""}`}
+              type="checkbox"
+              title="darkMode"
+              name="darkMode"
+              id="darkMode"
+              checked={!darkMode}
+              onChange={() => updateDarkMode(!darkMode)}
+            />
             <div className="dropdown-end dropdown">
               <label tabIndex={0} className="btn-ghost btn-circle avatar btn">
                 <svg

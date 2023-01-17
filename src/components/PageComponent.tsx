@@ -3,6 +3,7 @@ import type { FC, PropsWithChildren } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { Layout } from "./Layout";
 import { Toaster } from "react-hot-toast";
+import { useAppContext } from "../context/AppContext";
 
 export interface Props {
   title: string;
@@ -10,6 +11,7 @@ export interface Props {
 
 const PageComponent: FC<PropsWithChildren<Props>> = ({ title, children }) => {
   const { data: sessionData } = useSession();
+  const { darkMode } = useAppContext();
 
   return (
     <>
@@ -18,7 +20,7 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({ title, children }) => {
       </Head>
       <main>
         <Toaster />
-        <div data-theme="dracula">
+        <div data-theme={darkMode ? "dracula" : "cupcake"}>
           <div>
             {!sessionData?.user ? (
               <div className="flex min-h-screen flex-col items-center justify-center">
