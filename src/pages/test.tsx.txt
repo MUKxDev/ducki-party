@@ -1,0 +1,102 @@
+// import React, { useEffect } from "react";
+// import PageComponent from "../components/PageComponent";
+// import { Anime } from "../utils/Anime";
+// import { load } from "cheerio";
+
+// const TestPage = () => {
+//   useEffect(() => {
+//     // Searches for anime using a POST request & uses first result
+//     // const anime = new Anime("https://www1.gogoanime.bid");
+//     // anime
+//     // animeInfo("rezero", "https://www1.gogoanime.bid")
+//     //   .then((data: any) => {
+//     //     console.log(data);
+//     //   })
+//     //   .catch((err: any) => {
+//     //     console.log(err);
+//     //   });
+//   }, []);
+
+//   async function theTest() {
+//     const res = await fetch("https://www1.gogoanime.bid");
+
+//     // const html = await res.json();
+
+//     // const $ = load(html);
+//   }
+
+//   async function animeInfo(name: string, theBaseUrl: string) {
+//     if (!name) throw new Error(`Name of the anime needs to be specified`);
+//     if (typeof name !== "string")
+//       throw new Error(`Name of the anime should be a string`);
+
+//     try {
+//       name = name.replace(/\s/g, "%20");
+//       let baseUrl = `https://myanimelist.net/search/all?cat=all&q=${name}`;
+
+//       let res = await fetch(baseUrl).then((res) => res.text());
+//       let $x = load(res);
+//       const nmae = $x(
+//         "div.js-scrollfix-bottom-rel > article > div.list.di-t.w100"
+//       )
+//         .eq(0)
+//         .find("div.information > a:first")
+//         .text();
+
+//       baseUrl = `${theBaseUrl}//search.html?keyword=${nmae.replace(
+//         /\s/g,
+//         "_"
+//       )}`;
+//       res = await fetch(baseUrl).then((res) => res.text());
+//       $x = load(res);
+//       const link = `${baseUrl}${
+//         $x("div.last_episodes > ul.items > li")
+//           .eq(0)
+//           .find("div.img")
+//           .find("a")
+//           .attr("href") as string
+//       }`;
+//       const body = await fetch(link).then((res) => res.text());
+//       let $ = load(body);
+//       const $a = load(body);
+//       $ = load($("div.anime_info_body_bg").html() as string);
+
+//       const anime = {
+//         name: $("h1").text(),
+//         cover: $("img").attr("src"),
+//         type: $("p.type").eq(0).find("a").text(),
+//         summary: $("p.type")
+//           .eq(1)
+//           .text()
+//           .trim()
+//           .replace(/Plot Summary:/i, "")
+//           .trim(),
+//         genre: $("p.type").eq(2).find("a").text(),
+//         releasedDate: $("p.type")
+//           .eq(3)
+//           .text()
+//           .replace(/Released:/i, "")
+//           .trim(),
+//         status: $("p.type").eq(4).find("a").text(),
+//         otherName: $("p.type")
+//           .eq(5)
+//           .text()
+//           .replace(/Other name/i, ""),
+//         episodeCount: $a("div.anime_video_body > ul#episode_page > li")
+//           .find("a")
+//           .attr("ep_end"),
+//         link: link,
+//       };
+
+//       return anime;
+//     } catch (err) {
+//       throw new Error(
+//         `Couldn't fetch the anime info due to an error most probably due to the url or name being Invalid`
+//       );
+//     }
+//   }
+
+//   return <PageComponent title="Test Page"></PageComponent>;
+// };
+
+// export default TestPage;

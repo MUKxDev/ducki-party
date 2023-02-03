@@ -4,6 +4,11 @@ import type { NextPage } from "next";
 import { api } from "../../utils/api";
 import { VideoActivity } from "../../components/room/VideoActivity";
 import { useRouter } from "next/router";
+import type { Rooms, VideoActivities } from "@prisma/client";
+
+type RoomWithVideoActivity = Rooms & {
+  videoActivity: VideoActivities;
+};
 
 const RoomPage: NextPage = () => {
   const { query } = useRouter();
@@ -20,16 +25,19 @@ const RoomPage: NextPage = () => {
           <progress className="progress mx-auto w-56"></progress>
         ) : (
           <div className="flex grow grid-cols-7 flex-col gap-3 px-3 pb-3 lg:grid">
-            <div className="col-span-7 h-min  resize-y overflow-hidden text-ellipsis rounded-xl bg-base-300 p-3 lg:col-span-5">
-              {" "}
-              {roomQuery.data && (
-                <VideoActivity room={roomQuery.data}></VideoActivity>
+            <div className="col-span-7 h-min resize-y  overflow-hidden text-ellipsis rounded-xl bg-base-300 p-3 md:h-full lg:col-span-5">
+              {roomQuery.data && roomQuery.data.videoActivity !== null && (
+                <VideoActivity
+                  room={roomQuery.data as RoomWithVideoActivity}
+                ></VideoActivity>
               )}
               {!roomQuery.data && <div>Room has not been found</div>}
             </div>
-            <div className="col-span-7 grow rounded-xl bg-base-300 p-3 lg:col-span-2">
-              Chat
-            </div>
+            {roomQuery.data && (
+              <div className="col-span-7 min-h-[8rem] grow rounded-xl bg-base-300 p-3 lg:col-span-2">
+                Chat
+              </div>
+            )}
           </div>
         )}
       </PageComponent>

@@ -1,19 +1,174 @@
 import type { Rooms, VideoActivities } from "@prisma/client";
-import React, { type FC } from "react";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { useSession } from "next-auth/react";
+import type { MutableRefObject } from "react";
+import React, { useEffect, useRef, useState, type FC } from "react";
+import ReactPlayer from "react-player";
+import { supabase } from "../../context/supabase";
+import { api } from "../../utils/api";
+import { isObjectEmpty } from "../../utils/helpers";
 
 interface Props {
   room: Rooms & {
-    videoActivity: VideoActivities | null;
+    videoActivity: VideoActivities;
   };
 }
 
 export const VideoActivity: FC<Props> = ({ room }) => {
+  /* -------------------------------------------------------------------------- */
+  /*                                   CONTEXT                                  */
+  /* -------------------------------------------------------------------------- */
+  const { data: session } = useSession();
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   STATES                                   */
+  /* -------------------------------------------------------------------------- */
+  const [videoActivity, setVideoActivity] = useState<VideoActivities>(
+    room.videoActivity
+  );
+  const playerRef: MutableRefObject<ReactPlayer | null> = useRef(null);
+  const [isPip, setIsPip] = useState(false);
+  const [duration, setDuration] = useState(999999);
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  MUTATIONS                                 */
+  /* -------------------------------------------------------------------------- */
+  const playPauseMutation = api.video.playPause.useMutation();
+
+  /* -------------------------------------------------------------------------- */
+  /*                                 USEEFFECTS                                 */
+  /* -------------------------------------------------------------------------- */
+  /* Subscribing to a channel that is listening for changes to the videoActivity. */
+  useEffect(() => {
+    const subscription = supabase
+      .channel("public:VideoActivities")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "VideoActivities",
+          filter: `id=eq.${room.videoActivity?.id ?? ""}`,
+        },
+        (payload: RealtimePostgresChangesPayload<VideoActivities>) => {
+          if (!isObjectEmpty(payload.new)) {
+            const newVideoActivity = payload.new as VideoActivities;
+            console.table(newVideoActivity);
+
+            if (newVideoActivity.lastUpdatedBy !== session?.user?.id) {
+              console.log(`Updated by: ${newVideoActivity.lastUpdatedBy}`);
+              setVideoActivity(newVideoActivity);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void subscription.unsubscribe();
+    };
+  }, [room, session?.user?.id]);
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  FUNCTIONS                                 */
+  /* -------------------------------------------------------------------------- */
+
+  /**
+   * If the playerRef.current is not null, then seek to the videoActivity.seek.
+   */
+  function syncData() {
+    playerRef.current?.seekTo(videoActivity.seek);
+  }
+
+  /**
+   * If the video element is in picture in picture mode, exit picture in picture mode, otherwise enter
+   * picture in picture mode.
+   */
+  async function pip() {
+    const v: HTMLVideoElement | null = document.querySelector("Video");
+    if (v) {
+      if (Boolean(document.pictureInPictureElement)) {
+        await document.exitPictureInPicture();
+        setIsPip(false);
+      } else {
+        await v.requestPictureInPicture();
+        setIsPip(true);
+      }
+    }
+  }
+
+  /**
+   * play() is an async function that calls the playPauseMutation mutation, which is a GraphQL mutation
+   * that updates the videoActivity state, which is a state that is used to update the video player.
+   */
+  async function play() {
+    await playPauseMutation
+      .mutateAsync({
+        id: videoActivity.id,
+        seek: playerRef.current?.getCurrentTime() ?? 0,
+        isPlaying: true,
+      })
+      .then((newVideoActivity) => setVideoActivity(newVideoActivity));
+  }
+
+  /**
+   * pause() is an async function that calls the playPauseMutation mutation, which is a GraphQL mutation
+   * that updates the videoActivity state, which is a state that is used to update the video player.
+   */
+  async function pause() {
+    await playPauseMutation
+      .mutateAsync({
+        id: videoActivity.id,
+        seek: playerRef.current?.getCurrentTime() ?? 0,
+        isPlaying: false,
+      })
+      .then((newVideoActivity) => setVideoActivity(newVideoActivity));
+  }
+
   return (
     <div className="flex aspect-video h-full w-[-webkit-fill-available] grow flex-col gap-3">
-      <div className="  !aspect-video h-fit max-w-fit overflow-clip rounded-lg bg-base-200">
-        {JSON.stringify(room)}
+      <div
+        onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
+        className="  !aspect-video h-fit max-w-fit grow overflow-clip rounded-lg bg-base-200"
+      >
+        <ReactPlayer
+          className=""
+          playing={videoActivity.isPlaying}
+          ref={playerRef}
+          onPlay={() => {
+            isPip && play();
+          }}
+          onPause={() => {
+            isPip && pause();
+          }}
+          onDisablePIP={() => {
+            setIsPip(false);
+          }}
+          onEnablePIP={() => {
+            setIsPip(true);
+          }}
+          width={"100%"}
+          height={"100%"}
+          onProgress={(state) => {
+            setVideoActivity(
+              Object.assign(Object.create(videoActivity), {
+                seek: state.playedSeconds,
+              }) as VideoActivities
+            );
+          }}
+          url={videoActivity.url ?? undefined}
+          controls={false}
+          playsinline
+          onReady={syncData}
+          onDuration={setDuration}
+        />
       </div>
-      <div className="max-w-full rounded-lg bg-base-200 p-4">controls</div>
+      <div
+        onClick={() => void pip()}
+        className="max-w-full rounded-lg bg-base-200 p-4"
+      >
+        controls, duration:{duration.toFixed(2)}
+      </div>
     </div>
   );
 };

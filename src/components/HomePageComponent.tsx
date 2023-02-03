@@ -19,17 +19,20 @@ export default function HomePageComponent() {
   });
 
   async function createVideoActivityRoom(url: string) {
-    const videoActivity = await toast.promise(
-      videoActivityMutation.mutateAsync({
-        url: url,
-      }),
-      {
-        loading: "Loading...",
-        success: "Room created!",
-        error: "Failed to create the room",
-      }
-    );
-    console.log(videoActivity);
+    await toast
+      .promise(
+        videoActivityMutation.mutateAsync({
+          url: url,
+        }),
+        {
+          loading: "Loading...",
+          success: "Room created!",
+          error: "Failed to create the room",
+        }
+      )
+      .then(async (videoActivity) => {
+        await push(`/rooms/${videoActivity.roomId}`);
+      });
   }
 
   return (

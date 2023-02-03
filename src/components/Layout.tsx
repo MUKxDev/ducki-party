@@ -48,7 +48,7 @@ export const Layout: FC<PropsWithChildren<Props>> = ({ user, children }) => {
               </label>
               <ul
                 tabIndex={0}
-                className="dropdown-content menu rounded-box menu-compact mt-3 w-52 bg-base-300 p-2 shadow"
+                className="dropdown-content menu rounded-box menu-compact mt-3 w-52 bg-primary p-2 text-primary-content shadow"
               >
                 <li>
                   <p>{user.name}</p>

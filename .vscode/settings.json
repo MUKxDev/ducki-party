@@ -5,8 +5,10 @@
     "Ducki",
     "Formik",
     "subrouters",
+    "supabase",
     "superjson",
     "tailwindcss",
+    "tanstack",
     "TRPC",
     "typesafe",
     "unauthed"
