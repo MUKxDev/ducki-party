@@ -7,10 +7,12 @@
     "subrouters",
     "supabase",
     "superjson",
+    "svgr",
     "tailwindcss",
     "tanstack",
     "TRPC",
     "typesafe",
-    "unauthed"
+    "unauthed",
+    "USEEFFECTS"
   ]
 }

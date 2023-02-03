@@ -26,4 +26,24 @@ export const videoActivityRouter = createTRPCRouter({
         },
       });
     }),
+  syncSeek: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        seek: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const videoInput: Prisma.VideoActivitiesUpdateInput = {
+        seek: input.seek,
+        lastUpdatedBy: ctx.session.user.id,
+      };
+
+      return ctx.prisma.videoActivities.update({
+        data: videoInput,
+        where: {
+          id: input.id,
+        },
+      });
+    }),
 });

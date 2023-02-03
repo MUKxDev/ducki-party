@@ -28,11 +28,13 @@
     "react-dom": "18.2.0",
     "react-hot-toast": "^2.4.0",
     "react-player": "^2.11.0",
+    "react-range": "^1.8.14",
     "superjson": "1.9.1",
     "zod": "^3.20.2",
     "zod-formik-adapter": "^1.2.0"
   },
   "devDependencies": {
+    "@svgr/webpack": "^6.5.1",
     "@tailwindcss/typography": "^0.5.9",
     "@types/node": "^18.11.18",
     "@types/prettier": "^2.7.2",

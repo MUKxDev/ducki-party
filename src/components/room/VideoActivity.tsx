@@ -7,6 +7,7 @@ import ReactPlayer from "react-player";
 import { supabase } from "../../context/supabase";
 import { api } from "../../utils/api";
 import { isObjectEmpty } from "../../utils/helpers";
+import { VideoControls } from "./VideoControls";
 
 interface Props {
   room: Rooms & {
@@ -129,12 +130,18 @@ export const VideoActivity: FC<Props> = ({ room }) => {
     <div className="flex aspect-video h-full w-[-webkit-fill-available] grow flex-col gap-3">
       <div
         onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
-        className="  !aspect-video h-fit max-w-fit grow overflow-clip rounded-lg bg-base-200"
+        className="!aspect-video h-fit max-w-fit grow overflow-clip rounded-lg bg-base-200"
       >
         <ReactPlayer
-          className=""
-          playing={videoActivity.isPlaying}
           ref={playerRef}
+          width={"100%"}
+          height={"100%"}
+          playsinline
+          controls={false}
+          url={videoActivity.url ?? undefined}
+          playing={videoActivity.isPlaying}
+          onReady={syncData}
+          onDuration={setDuration}
           onPlay={() => {
             isPip && play();
           }}
@@ -147,8 +154,6 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           onEnablePIP={() => {
             setIsPip(true);
           }}
-          width={"100%"}
-          height={"100%"}
           onProgress={(state) => {
             setVideoActivity(
               Object.assign(Object.create(videoActivity), {
@@ -156,18 +161,19 @@ export const VideoActivity: FC<Props> = ({ room }) => {
               }) as VideoActivities
             );
           }}
-          url={videoActivity.url ?? undefined}
-          controls={false}
-          playsinline
-          onReady={syncData}
-          onDuration={setDuration}
         />
       </div>
-      <div
-        onClick={() => void pip()}
-        className="max-w-full rounded-lg bg-base-200 p-4"
-      >
-        controls, duration:{duration.toFixed(2)}
+      <div className="max-w-full rounded-lg bg-base-200 p-4">
+        <VideoControls
+          videoActivity={videoActivity}
+          duration={duration}
+          playerRef={playerRef}
+          onPip={() => void pip()}
+          isPip={isPip}
+          onVideoActivitiesChange={(newVideoActivity) =>
+            setVideoActivity(newVideoActivity)
+          }
+        />
       </div>
     </div>
   );
