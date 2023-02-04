@@ -1,7 +1,7 @@
 import { createTRPCRouter } from "./trpc";
-import { exampleRouter } from "./routers/example";
 import { roomsRouter } from "./routers/rooms";
 import { videoActivityRouter } from "./routers/videoActivity";
+import { chatsRouter } from "./routers/chats";
 
 /**
  * This is the primary router for your server.
@@ -9,9 +9,9 @@ import { videoActivityRouter } from "./routers/videoActivity";
  * All routers added in /api/routers should be manually added here
  */
 export const appRouter = createTRPCRouter({
-  example: exampleRouter,
   rooms: roomsRouter,
   video: videoActivityRouter,
+  chats: chatsRouter,
 });
 
 // export type definition of API

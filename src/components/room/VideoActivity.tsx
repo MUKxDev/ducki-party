@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState, type FC } from "react";
 import ReactPlayer from "react-player";
 import { supabase } from "../../context/supabase";
 import { api } from "../../utils/api";
+import { defaultDuration } from "../../utils/constants";
 import { isObjectEmpty } from "../../utils/helpers";
 import { VideoControls } from "./VideoControls";
 
@@ -29,7 +30,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
   );
   const playerRef: MutableRefObject<ReactPlayer | null> = useRef(null);
   const [isPip, setIsPip] = useState(false);
-  const [duration, setDuration] = useState(999999);
+  const [duration, setDuration] = useState(defaultDuration);
 
   /* -------------------------------------------------------------------------- */
   /*                                  MUTATIONS                                 */
@@ -54,8 +55,6 @@ export const VideoActivity: FC<Props> = ({ room }) => {
         (payload: RealtimePostgresChangesPayload<VideoActivities>) => {
           if (!isObjectEmpty(payload.new)) {
             const newVideoActivity = payload.new as VideoActivities;
-            console.table(newVideoActivity);
-
             if (newVideoActivity.lastUpdatedBy !== session?.user?.id) {
               console.log(`Updated by: ${newVideoActivity.lastUpdatedBy}`);
               setVideoActivity(newVideoActivity);
@@ -130,7 +129,9 @@ export const VideoActivity: FC<Props> = ({ room }) => {
     <div className="flex aspect-video h-full w-[-webkit-fill-available] grow flex-col gap-3">
       <div
         onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
-        className="!aspect-video h-fit max-w-fit grow overflow-clip rounded-lg bg-base-200"
+        className={`!aspect-video h-fit min-h-[10rem] max-w-fit grow overflow-clip rounded-lg bg-base-200 ${
+          duration === defaultDuration ? "animate-pulse" : ""
+        } `}
       >
         <ReactPlayer
           ref={playerRef}

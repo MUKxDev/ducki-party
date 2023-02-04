@@ -7,9 +7,9 @@ import Play from "../../../public/icons/play-pause=play.svg";
 import Pause from "../../../public/icons/play-pause=pause.svg";
 import { api } from "../../utils/api";
 import type ReactPlayer from "react-player";
-import { ceil, floor } from "lodash";
 import { getTrackBackground, Range } from "react-range";
 import { useAppContext } from "../../context/AppContext";
+import { defaultDuration } from "../../utils/constants";
 
 interface Props {
   videoActivity: VideoActivities;
@@ -90,7 +90,7 @@ export const VideoControls: FC<Props> = ({
    * @returns A string with the format of minutes:seconds.
    */
   function formateSecondsToMinutes(time: number): string {
-    const minutes = floor(time / 60);
+    const minutes = Math.floor(time / 60);
     const seconds = time - minutes * 60;
 
     const timeFormat = new Intl.NumberFormat("en-US", {
@@ -102,7 +102,7 @@ export const VideoControls: FC<Props> = ({
     return `${timeFormat.format(minutes)}:${timeFormat.format(seconds)}`;
   }
 
-  return duration === 999999 ? (
+  return duration === defaultDuration ? (
     <div className="flex items-center justify-center">
       <progress className="progress mx-auto w-56"></progress>
     </div>
@@ -124,7 +124,7 @@ export const VideoControls: FC<Props> = ({
         <div className={"hidden grow p-3 md:block"}>
           <Range
             min={0.0}
-            max={ceil(duration)}
+            max={Math.ceil(duration)}
             onChange={(values) => {
               onVideoActivitiesChange(
                 Object.assign(Object.create(videoActivity), {
@@ -155,7 +155,7 @@ export const VideoControls: FC<Props> = ({
                       ? ["#87827f", "#c2bdba"]
                       : ["#291334", "#E7E2DF"],
                     min: 0.0,
-                    max: ceil(duration),
+                    max: Math.ceil(duration),
                   }),
                 }}
               >
@@ -170,7 +170,7 @@ export const VideoControls: FC<Props> = ({
           className={"mx-4 select-none text-base-content"}
         >{`${formateSecondsToMinutes(
           videoActivity.seek
-        )} / ${formateSecondsToMinutes(ceil(duration))}`}</p>
+        )} / ${formateSecondsToMinutes(Math.ceil(duration))}`}</p>
 
         <div className="" onClick={() => onPip()}>
           {isPip ? (
@@ -184,7 +184,7 @@ export const VideoControls: FC<Props> = ({
       <div className={"p-3 md:hidden"}>
         <Range
           min={0.0}
-          max={ceil(duration)}
+          max={Math.ceil(duration)}
           step={1}
           onChange={(values) => {
             onVideoActivitiesChange(
@@ -216,7 +216,7 @@ export const VideoControls: FC<Props> = ({
                     ? ["#87827f", "#c2bdba"]
                     : ["#291334", "#E7E2DF"],
                   min: 0.0,
-                  max: ceil(duration),
+                  max: Math.ceil(duration),
                 }),
               }}
             >
