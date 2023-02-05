@@ -36,6 +36,7 @@ const RoomPage: NextPage = () => {
                 )}
               {!roomQuery.data && <div>Room has not been found</div>}
             </div>
+
             {roomQuery.data && (
               <div className="col-span-7 min-h-[30%]  grow rounded-xl bg-base-300 p-3 lg:col-span-2">
                 <Chat room={roomQuery.data} />
