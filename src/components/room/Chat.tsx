@@ -11,10 +11,12 @@ import React from "react";
 import { supabase } from "../../context/supabase";
 import { isObjectEmpty } from "../../utils/helpers";
 import { useSession } from "next-auth/react";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { z } from "zod";
 import { api } from "../../utils/api";
+
+const sound = "/audio/message.mp3";
 
 interface Props {
   room: Rooms;
@@ -35,7 +37,7 @@ export const Chat: FC<Props> = ({ room }) => {
   const [firstChatsFetched, setFirstChatsFetched] = useState<boolean>(false);
 
   const chatContainerEndRef = useRef<HTMLDivElement>(null);
-
+  const audioPlayer = useRef<HTMLAudioElement>(null);
   const chatSchema = z.object({
     message: z.string(),
   });
@@ -61,7 +63,7 @@ export const Chat: FC<Props> = ({ room }) => {
             if (!isObjectEmpty(payload.new)) {
               const newChat = payload.new as Chats;
               if (newChat.userId !== session?.user?.id) {
-                // TODO: notify that a new message has been received
+                void playAudio();
                 void getChatWithUser(newChat.id);
               } else {
                 const newChatToAdd = Object.assign(Object.create(newChat), {
@@ -103,6 +105,10 @@ export const Chat: FC<Props> = ({ room }) => {
     }
   }, [chatsMutation, firstChatsFetched, room.id]);
 
+  async function playAudio() {
+    await audioPlayer.current?.play();
+  }
+
   async function sendChat(message: string) {
     await createChatMutation.mutateAsync({
       message: message,
@@ -112,6 +118,7 @@ export const Chat: FC<Props> = ({ room }) => {
 
   return (
     <div className="flex h-full flex-col">
+      <audio ref={audioPlayer} src={sound} />
       <div className="mb-3 grow overflow-y-scroll">
         <div className="flex flex-col gap-2">
           {chats.map((chat) => (
@@ -144,17 +151,10 @@ export const Chat: FC<Props> = ({ room }) => {
           <Form className="flex min-h-fit">
             <div className="flex w-full flex-col">
               <Field
-                className={`input-bordered input rounded-r-none ${
-                  errors.message ? "input-error" : ""
-                }`}
+                className={`input-bordered input w-full rounded-r-none`}
                 type="text"
                 name="message"
                 placeholder="Message..."
-              />
-              <ErrorMessage
-                className="label-text-alt text-error"
-                name="message"
-                component="label"
               />
             </div>
 
@@ -163,7 +163,7 @@ export const Chat: FC<Props> = ({ room }) => {
                 isSubmitting ? "loading" : ""
               }`}
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || typeof errors.message === "string"}
             >
               Send
             </button>

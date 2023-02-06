@@ -58,6 +58,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
             if (newVideoActivity.lastUpdatedBy !== session?.user?.id) {
               console.log(`Updated by: ${newVideoActivity.lastUpdatedBy}`);
               setVideoActivity(newVideoActivity);
+              playerRef.current?.seekTo(newVideoActivity.seek);
             }
           }
         }
