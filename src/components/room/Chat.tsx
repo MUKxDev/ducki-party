@@ -117,7 +117,7 @@ export const Chat: FC<Props> = ({ room }) => {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col ">
       <audio ref={audioPlayer} src={sound} />
       <div className="mb-3 grow overflow-y-scroll">
         <div className="flex flex-col gap-2">
@@ -142,8 +142,8 @@ export const Chat: FC<Props> = ({ room }) => {
         initialValues={{ message: "" }}
         validationSchema={toFormikValidationSchema(chatSchema)}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
-          await sendChat(values.message);
           resetForm();
+          await sendChat(values.message);
           setSubmitting(false);
         }}
       >

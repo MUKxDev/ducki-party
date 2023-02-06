@@ -1,15 +1,43 @@
+import { Formik, Form, Field } from "formik";
 import { type User } from "next-auth";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import React, { type PropsWithChildren, type FC } from "react";
+import { z } from "zod";
+import { toFormikValidationSchema } from "zod-formik-adapter";
 import { useAppContext } from "../context/AppContext";
+import type { RoomWithVideoActivity } from "../pages/rooms/[id]";
+import { api } from "../utils/api";
 
 interface Props {
   user: User;
+  room?: RoomWithVideoActivity;
 }
 
-export const Layout: FC<PropsWithChildren<Props>> = ({ user, children }) => {
+const urlSchema = z.object({
+  url: z.string(),
+});
+
+export const Layout: FC<PropsWithChildren<Props>> = ({
+  user,
+  children,
+  room,
+}) => {
+  const updateURLMutation = api.video.updateUrl.useMutation();
+
   const { darkMode, updateDarkMode } = useAppContext();
+
+  async function updateURL(newUrl: string) {
+    if (room)
+      await updateURLMutation
+        .mutateAsync({
+          id: room.videoActivity.id,
+          url: newUrl,
+        })
+        .then(() => {
+          document.getElementById("my-modal-4")?.click();
+        });
+  }
 
   return (
     <div className="flex h-screen flex-col items-center justify-center ">
@@ -21,6 +49,11 @@ export const Layout: FC<PropsWithChildren<Props>> = ({ user, children }) => {
             </Link>
           </div>
           <div className="flex gap-3">
+            {room && room.type == "VIDEO" && (
+              <label htmlFor="my-modal-4" className="btn-ghost btn-circle btn">
+                URL
+              </label>
+            )}
             <input
               className={`toggle ${!darkMode ? "toggle-primary" : ""}`}
               type="checkbox"
@@ -71,6 +104,46 @@ export const Layout: FC<PropsWithChildren<Props>> = ({ user, children }) => {
           {children}
         </div>
       }
+
+      {/* UPDATE URL */}
+      <input type="checkbox" id="my-modal-4" className="modal-toggle" />
+      <label htmlFor="my-modal-4" className="modal cursor-pointer">
+        <label className="modal-box relative" htmlFor="">
+          <h3 className="text-lg font-bold">Update the URL of the video!</h3>
+          <Formik
+            initialValues={{ url: "" }}
+            validationSchema={toFormikValidationSchema(urlSchema)}
+            onSubmit={async (values, { setSubmitting, resetForm }) => {
+              await updateURL(values.url);
+              resetForm();
+              setSubmitting(false);
+            }}
+          >
+            {({ isSubmitting, errors }) => (
+              <Form className="mt-3 flex min-h-fit">
+                <div className="flex w-full flex-col">
+                  <Field
+                    className={`input-bordered input w-full rounded-r-none`}
+                    type="text"
+                    name="url"
+                    placeholder="URL..."
+                  />
+                </div>
+
+                <button
+                  className={`btn-primary btn rounded-l-none ${
+                    isSubmitting ? "loading" : ""
+                  }`}
+                  type="submit"
+                  disabled={isSubmitting || typeof errors.url === "string"}
+                >
+                  Update
+                </button>
+              </Form>
+            )}
+          </Formik>
+        </label>
+      </label>
     </div>
   );
 };

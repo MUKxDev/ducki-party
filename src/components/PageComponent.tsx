@@ -5,11 +5,18 @@ import { Layout } from "./Layout";
 import { Toaster } from "react-hot-toast";
 import { useAppContext } from "../context/AppContext";
 
+import type { RoomWithVideoActivity } from "../pages/rooms/[id]";
+
 export interface Props {
   title: string;
+  room?: RoomWithVideoActivity;
 }
 
-const PageComponent: FC<PropsWithChildren<Props>> = ({ title, children }) => {
+const PageComponent: FC<PropsWithChildren<Props>> = ({
+  title,
+  children,
+  room,
+}) => {
   const { data: sessionData } = useSession();
   const { darkMode } = useAppContext();
 
@@ -37,7 +44,9 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({ title, children }) => {
                 </div>
               </div>
             ) : (
-              <Layout user={sessionData.user}>{children}</Layout>
+              <Layout user={sessionData.user} room={room}>
+                {children}
+              </Layout>
             )}
           </div>
         </div>

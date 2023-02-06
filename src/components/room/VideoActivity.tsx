@@ -55,7 +55,10 @@ export const VideoActivity: FC<Props> = ({ room }) => {
         (payload: RealtimePostgresChangesPayload<VideoActivities>) => {
           if (!isObjectEmpty(payload.new)) {
             const newVideoActivity = payload.new as VideoActivities;
-            if (newVideoActivity.lastUpdatedBy !== session?.user?.id) {
+            if (
+              newVideoActivity.lastUpdatedBy !== session?.user?.id ||
+              newVideoActivity.url !== videoActivity.url
+            ) {
               console.log(`Updated by: ${newVideoActivity.lastUpdatedBy}`);
               setVideoActivity(newVideoActivity);
               playerRef.current?.seekTo(newVideoActivity.seek);
@@ -68,7 +71,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
     return () => {
       void subscription.unsubscribe();
     };
-  }, [room, session?.user?.id]);
+  }, [room, session?.user?.id, videoActivity.url]);
 
   /* -------------------------------------------------------------------------- */
   /*                                  FUNCTIONS                                 */
