@@ -123,7 +123,7 @@ export const Chat: FC<Props> = ({ room }) => {
         <div className="flex flex-col gap-2">
           {chats.map((chat) => (
             <div
-              className={`text-starts flex h-min w-fit max-w-[80%] flex-col rounded-lg p-3 text-xs ${
+              className={`text-starts flex h-min w-fit max-w-[80%] flex-col rounded-lg py-1 px-3 text-xs ${
                 chat.userId !== session?.user?.id
                   ? "mr-auto bg-accent text-accent-content"
                   : "ml-auto bg-secondary text-secondary-content"
