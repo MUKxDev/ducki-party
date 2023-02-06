@@ -127,6 +127,7 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
                     type="text"
                     name="url"
                     placeholder="URL..."
+                    autofocus
                   />
                 </div>
 

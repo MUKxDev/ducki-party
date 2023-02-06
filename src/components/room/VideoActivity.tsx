@@ -133,7 +133,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
     <div className="flex aspect-video h-full w-[-webkit-fill-available] grow flex-col gap-3">
       <div
         onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
-        className={`!aspect-video h-fit min-h-[10rem] max-w-fit grow overflow-clip rounded-lg bg-base-200 ${
+        className={`!aspect-video h-fit min-h-[10rem] max-w-fit grow overflow-clip rounded-lg bg-base-200 hover:cursor-pointer ${
           duration === defaultDuration ? "animate-pulse" : ""
         } `}
       >
