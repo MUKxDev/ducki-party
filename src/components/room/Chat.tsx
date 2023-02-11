@@ -16,7 +16,7 @@ import { toFormikValidationSchema } from "zod-formik-adapter";
 import { z } from "zod";
 import { api } from "../../utils/api";
 
-const sound = "/audio/message.mp3";
+const sound = "/audio/message.wav";
 
 interface Props {
   room: Rooms;
@@ -63,13 +63,11 @@ export const Chat: FC<Props> = ({ room }) => {
             if (!isObjectEmpty(payload.new)) {
               const newChat = payload.new as Chats;
               if (newChat.userId !== session?.user?.id) {
-                void playAudio();
-                void getChatWithUser(newChat.id);
+                void getChatWithUser(newChat.id).then(() => void playAudio());
               } else {
                 const newChatToAdd = Object.assign(Object.create(newChat), {
                   user: session.user,
                 }) as ChatWithUser;
-                console.log(newChatToAdd);
                 setChats((chats) => [...chats, newChatToAdd]);
               }
             }
