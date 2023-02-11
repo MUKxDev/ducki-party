@@ -4,6 +4,8 @@
     "daisyui",
     "Ducki",
     "Formik",
+    "nextjs",
+    "qstash",
     "subrouters",
     "supabase",
     "superjson",
@@ -13,6 +15,7 @@
     "TRPC",
     "typesafe",
     "unauthed",
+    "upstash",
     "USEEFFECTS"
   ]
 }
