@@ -23,8 +23,9 @@ async function handler(
       const now = moment().subtract(1, "day");
       const { data, error } = await supabase
         .from("Rooms")
-        .select("id")
-        .lte("createdAt", now.toISOString());
+        .delete()
+        .lte("createdAt", now.toISOString())
+        .select("id");
 
       if (error) throw error;
 
