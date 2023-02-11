@@ -137,7 +137,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
         onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
         className={`!aspect-video h-fit min-h-[10rem] max-w-fit grow overflow-clip rounded-lg bg-base-200 hover:cursor-pointer ${
           duration === defaultDuration ? "animate-pulse" : ""
-        } ${fullscreen ? "mx-auto w-screen" : ""}`}
+        } ${fullscreen ? "mx-auto w-screen bg-base-100" : ""}`}
       >
         <ReactPlayer
           ref={playerRef}
@@ -173,7 +173,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
       <div
         className={`max-w-full rounded-lg bg-base-200 p-4 ${
           fullscreen
-            ? "absolute bottom-0 left-0 right-0 z-20 opacity-0 duration-200 hover:opacity-90"
+            ? "absolute bottom-3 left-3 right-3 z-20 opacity-0 duration-200 hover:opacity-90"
             : ""
         }`}
       >

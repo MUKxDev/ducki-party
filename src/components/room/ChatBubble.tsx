@@ -18,30 +18,13 @@ export const ChatBubble: FC<Props> = ({ chat }) => {
   const [showChatFullscreen, setShowChatFullscreen] = useState(true);
 
   useEffect(() => {
-    void new Promise((resolve) => setTimeout(resolve, 6000)).then(() =>
+    void new Promise((resolve) => setTimeout(resolve, 10000)).then(() =>
       setShowChatFullscreen(false)
     );
   }, []);
 
   return (
     <div>
-      {/* <div
-        className={`text-starts relative flex h-min w-fit max-w-[80%] flex-col rounded-lg py-1 px-3 text-xs  duration-500 ${
-          chat.userId !== session?.user?.id
-            ? "mr-auto bg-accent text-accent-content"
-            : "ml-auto bg-secondary text-secondary-content"
-        } ${
-          fullscreen
-            ? `hover:opacity-90 ${
-                showChatFullscreen ? "opacity-90" : "opacity-20"
-              }`
-            : "opacity-100"
-        }`}
-        key={chat.id}
-      >
-        <p className="font-bold">{chat.user.name}</p>
-        <p>{chat.message}</p>
-      </div> */}
       <div
         className={`chat duration-500 ${
           chat.userId !== session?.user?.id ? "chat-start" : "chat-end"
