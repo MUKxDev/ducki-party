@@ -121,8 +121,8 @@ export const Chat: FC<Props> = ({ room }) => {
     <div className="h-full grow">
       <audio ref={audioPlayer} src={sound} />
       <div className="group flex h-full flex-col justify-between">
-        <div className={`mb-3 grow overflow-y-scroll ${fullscreen ? " " : ""}`}>
-          <div className={`flex  flex-col gap-2 ${fullscreen ? "" : ""}`}>
+        <div className={`mb-3 grow overflow-y-scroll`}>
+          <div className={`flex  flex-col gap-2`}>
             {chats.map((chat) => (
               <ChatBubble key={chat.id} chat={chat}></ChatBubble>
             ))}

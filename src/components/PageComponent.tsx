@@ -17,7 +17,7 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({
   children,
   room,
 }) => {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status } = useSession();
   const { darkMode } = useAppContext();
 
   return (
@@ -28,27 +28,33 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({
       <main>
         <Toaster />
         <div data-theme={darkMode ? "dracula" : "cupcake"}>
-          <div>
-            {!sessionData?.user ? (
-              <div className="flex min-h-screen flex-col items-center justify-center">
-                <div className="prose flex flex-col gap-4 text-center">
-                  <h1>Ducki Party</h1>
-                  <div>You need to sign in to view this page</div>
-                  <button
-                    className="btn-accent btn"
-                    type="button"
-                    onClick={() => void signIn()}
-                  >
-                    Sign in
-                  </button>
+          {status === "loading" ? (
+            <div className="flex h-screen w-screen flex-col items-center justify-center">
+              <progress className="progress mx-auto w-56"></progress>
+            </div>
+          ) : (
+            <div>
+              {!sessionData?.user ? (
+                <div className="flex min-h-screen flex-col items-center justify-center">
+                  <div className="prose flex flex-col gap-4 text-center">
+                    <h1>Ducki Party</h1>
+                    <div>You need to sign in to view this website</div>
+                    <button
+                      className="btn-accent btn"
+                      type="button"
+                      onClick={() => void signIn()}
+                    >
+                      Sign in
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <Layout user={sessionData.user} room={room}>
-                {children}
-              </Layout>
-            )}
-          </div>
+              ) : (
+                <Layout user={sessionData.user} room={room}>
+                  {children}
+                </Layout>
+              )}
+            </div>
+          )}
         </div>
       </main>
     </>
