@@ -18,7 +18,7 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({
   room,
 }) => {
   const { data: sessionData, status } = useSession();
-  const { darkMode } = useAppContext();
+  const { darkMode, fullscreen } = useAppContext();
 
   return (
     <>
@@ -27,7 +27,9 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({
       </Head>
       <main>
         <Toaster />
-        <div data-theme={darkMode ? "dracula" : "cupcake"}>
+        <div
+          data-theme={fullscreen ? "luxury" : darkMode ? "dracula" : "cupcake"}
+        >
           {status === "loading" ? (
             <div className="flex h-screen w-screen flex-col items-center justify-center">
               <progress className="progress mx-auto w-56"></progress>
