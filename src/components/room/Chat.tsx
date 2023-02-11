@@ -15,6 +15,8 @@ import { Field, Form, Formik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { z } from "zod";
 import { api } from "../../utils/api";
+import { useAppContext } from "../../context/AppContext";
+import { ChatBubble } from "./ChatBubble";
 
 const sound = "/audio/message.wav";
 
@@ -32,6 +34,7 @@ export const Chat: FC<Props> = ({ room }) => {
   /*                                   CONTEXT                                  */
   /* -------------------------------------------------------------------------- */
   const { data: session } = useSession();
+  const { fullscreen } = useAppContext();
 
   const [chats, setChats] = useState<ChatWithUser[]>([]);
   const [firstChatsFetched, setFirstChatsFetched] = useState<boolean>(false);
@@ -44,7 +47,7 @@ export const Chat: FC<Props> = ({ room }) => {
 
   useEffect(() => {
     chatContainerEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chats]);
+  }, [chats, fullscreen]);
 
   useEffect(() => {
     let subscription: RealtimeChannel;
@@ -115,59 +118,57 @@ export const Chat: FC<Props> = ({ room }) => {
   }
 
   return (
-    <div className="flex h-full flex-col ">
+    <div className="h-full grow">
       <audio ref={audioPlayer} src={sound} />
-      <div className="mb-3 grow overflow-y-scroll">
-        <div className="flex flex-col gap-2">
-          {chats.map((chat) => (
-            <div
-              className={`text-starts flex h-min w-fit max-w-[80%] flex-col rounded-lg py-1 px-3 text-xs ${
-                chat.userId !== session?.user?.id
-                  ? "mr-auto bg-accent text-accent-content"
-                  : "ml-auto bg-secondary text-secondary-content"
-              } `}
-              key={chat.id}
-            >
-              <p className="font-bold">{chat.user.name}</p>
-              <p>{chat.message}</p>
-            </div>
-          ))}
-          {/* To scroll to last chat */}
-          <div ref={chatContainerEndRef}></div>
+      <div className="group flex h-full flex-col justify-between">
+        <div className={`mb-3 grow overflow-y-scroll ${fullscreen ? " " : ""}`}>
+          <div className={`flex  flex-col gap-2 ${fullscreen ? "" : ""}`}>
+            {chats.map((chat) => (
+              <ChatBubble key={chat.id} chat={chat}></ChatBubble>
+            ))}
+            {/* To scroll to last chat */}
+            <div ref={chatContainerEndRef}></div>
+          </div>
         </div>
-      </div>
-      <Formik
-        initialValues={{ message: "" }}
-        validationSchema={toFormikValidationSchema(chatSchema)}
-        onSubmit={async (values, { setSubmitting, resetForm }) => {
-          resetForm();
-          await sendChat(values.message);
-          setSubmitting(false);
-        }}
-      >
-        {({ isSubmitting, errors }) => (
-          <Form className="flex min-h-fit">
-            <div className="flex w-full flex-col">
-              <Field
-                className={`input-bordered input w-full rounded-r-none`}
-                type="text"
-                name="message"
-                placeholder="Message..."
-              />
-            </div>
-
-            <button
-              className={`btn-primary btn rounded-l-none ${
-                isSubmitting ? "loading" : ""
+        <Formik
+          initialValues={{ message: "" }}
+          validationSchema={toFormikValidationSchema(chatSchema)}
+          onSubmit={async (values, { setSubmitting, resetForm }) => {
+            resetForm();
+            await sendChat(values.message);
+            setSubmitting(false);
+          }}
+        >
+          {({ isSubmitting, errors }) => (
+            <Form
+              className={`flex min-h-fit ${
+                fullscreen
+                  ? "opacity-5 duration-150 focus-within:opacity-90 group-hover:opacity-90"
+                  : ""
               }`}
-              type="submit"
-              disabled={isSubmitting || typeof errors.message === "string"}
             >
-              Send
-            </button>
-          </Form>
-        )}
-      </Formik>
+              <div className="flex w-full flex-col">
+                <Field
+                  className={`input-bordered input w-full rounded-r-none`}
+                  type="text"
+                  name="message"
+                  placeholder="Message..."
+                />
+              </div>
+
+              <button
+                className={`btn-primary btn rounded-l-none ${
+                  isSubmitting ? "loading" : ""
+                }`}
+                type="submit"
+                disabled={isSubmitting || typeof errors.message === "string"}
+              >
+                Send
+              </button>
+            </Form>
+          )}
+        </Formik>
+      </div>
     </div>
   );
 };

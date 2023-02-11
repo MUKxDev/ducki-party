@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import type { MutableRefObject } from "react";
 import React, { useEffect, useRef, useState, type FC } from "react";
 import ReactPlayer from "react-player";
+import { useAppContext } from "../../context/AppContext";
 import { supabase } from "../../context/supabase";
 import { api } from "../../utils/api";
 import { defaultDuration } from "../../utils/constants";
@@ -21,6 +22,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
   /*                                   CONTEXT                                  */
   /* -------------------------------------------------------------------------- */
   const { data: session } = useSession();
+  const { fullscreen } = useAppContext();
 
   /* -------------------------------------------------------------------------- */
   /*                                   STATES                                   */
@@ -130,12 +132,12 @@ export const VideoActivity: FC<Props> = ({ room }) => {
   }
 
   return (
-    <div className="flex aspect-video h-full w-[-webkit-fill-available] grow flex-col gap-3">
+    <div className="relative flex aspect-video h-full w-[-webkit-fill-available] grow flex-col gap-3">
       <div
         onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
         className={`!aspect-video h-fit min-h-[10rem] max-w-fit grow overflow-clip rounded-lg bg-base-200 hover:cursor-pointer ${
           duration === defaultDuration ? "animate-pulse" : ""
-        } `}
+        } ${fullscreen ? "mx-auto w-screen" : ""}`}
       >
         <ReactPlayer
           ref={playerRef}
@@ -168,7 +170,13 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           }}
         />
       </div>
-      <div className="max-w-full rounded-lg bg-base-200 p-4">
+      <div
+        className={`max-w-full rounded-lg bg-base-200 p-4 ${
+          fullscreen
+            ? "absolute bottom-0 left-0 right-0 z-20 opacity-0 duration-200 hover:opacity-90"
+            : ""
+        }`}
+      >
         <VideoControls
           videoActivity={videoActivity}
           duration={duration}
