@@ -143,7 +143,7 @@ export const Chat: FC<Props> = ({ room }) => {
             <Form
               className={`flex min-h-fit ${
                 fullscreen
-                  ? "opacity-5 duration-150 focus-within:opacity-90 group-hover:opacity-90"
+                  ? "opacity-5 duration-150 focus-within:opacity-60 group-hover:opacity-60"
                   : ""
               }`}
             >
@@ -157,7 +157,7 @@ export const Chat: FC<Props> = ({ room }) => {
               </div>
 
               <button
-                className={`btn-primary btn rounded-l-none ${
+                className={`btn-secondary btn rounded-l-none ${
                   isSubmitting ? "loading" : ""
                 }`}
                 type="submit"
