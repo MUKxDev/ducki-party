@@ -6,7 +6,11 @@ module.exports = {
     extend: {},
   },
   daisyui: {
-    themes: ["cupcake", "dracula", "luxury"],
+    themes: ["cupcake", "dracula", "halloween"],
   },
-  plugins: [require("@tailwindcss/typography"), require("daisyui")],
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("daisyui"),
+    require("tailwind-scrollbar-hide"),
+  ],
 };

@@ -45,7 +45,7 @@ const RoomPage: NextPage = () => {
             <div
               className={`col-span-7 h-full  resize-y  overflow-hidden text-ellipsis rounded-xl bg-base-300 p-3 md:h-full lg:col-span-5 ${
                 fullscreen
-                  ? "absolute top-0 bottom-0 left-0 right-0 col-span-7 bg-base-100 p-0"
+                  ? "absolute top-0 bottom-0 left-0 right-0 col-span-7 bg-black p-0"
                   : ""
               }`}
             >

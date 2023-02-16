@@ -28,7 +28,9 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({
       <main>
         <Toaster />
         <div
-          data-theme={fullscreen ? "luxury" : darkMode ? "dracula" : "cupcake"}
+          data-theme={
+            fullscreen ? "halloween" : darkMode ? "dracula" : "cupcake"
+          }
         >
           {status === "loading" ? (
             <div className="flex h-screen w-screen flex-col items-center justify-center">
