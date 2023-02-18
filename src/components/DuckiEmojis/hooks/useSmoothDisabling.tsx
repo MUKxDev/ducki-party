@@ -18,7 +18,7 @@ const useSmoothDisabling = ({
   useEffect(() => {
     if (disable) {
       // disable fade out
-      gsap
+      void gsap
         .to(element, {
           opacity: 0,
           ease: "none",
