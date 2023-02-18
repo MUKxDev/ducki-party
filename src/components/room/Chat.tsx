@@ -203,7 +203,7 @@ export const Chat: FC<Props> = ({ room }) => {
                   : ""
               }`}
             >
-              <label className="swap btn-ghost swap-rotate btn-square btn mr-3">
+              <label className="swap swap-rotate btn-square btn mr-3">
                 <input
                   type="checkbox"
                   checked={showEmojis}
