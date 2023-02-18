@@ -140,20 +140,20 @@ export const VideoControls: FC<Props> = ({
               <div
                 {...props}
                 className={`aspect-square  w-5 rounded-full ${
-                  darkMode ? "bg-base-content" : "bg-[#442554]"
+                  darkMode ? "bg-base-content" : "bg-[#4f86a0]"
                 }`}
               />
             )}
             renderTrack={({ props, children }) => (
               <div
                 {...props}
-                className={`h-3 w-full cursor-pointer rounded-full border border-base-content`}
+                className={`h-3 w-full cursor-pointer rounded-full border border-neutral`}
                 style={{
                   background: getTrackBackground({
                     values: [videoActivity.seek],
                     colors: darkMode
                       ? ["#87827f", "#c2bdba"]
-                      : ["#291334", "#E7E2DF"],
+                      : ["#70ACC7", "#E7E2DF"],
                     min: 0.0,
                     max: Math.ceil(duration),
                   }),
@@ -201,20 +201,20 @@ export const VideoControls: FC<Props> = ({
             <div
               {...props}
               className={`aspect-square  w-5 rounded-full ${
-                darkMode ? "bg-base-content" : "bg-[#442554]"
+                darkMode ? "bg-base-content" : "bg-[#4f86a0]"
               }`}
             />
           )}
           renderTrack={({ props, children }) => (
             <div
               {...props}
-              className={`h-3 w-full rounded-full border border-base-content `}
+              className={`h-3 w-full rounded-full border border-neutral `}
               style={{
                 background: getTrackBackground({
                   values: [videoActivity.seek],
                   colors: darkMode
                     ? ["#87827f", "#c2bdba"]
-                    : ["#291334", "#E7E2DF"],
+                    : ["#70ACC7", "#E7E2DF"],
                   min: 0.0,
                   max: Math.ceil(duration),
                 }),
