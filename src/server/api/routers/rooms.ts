@@ -51,4 +51,17 @@ export const roomsRouter = createTRPCRouter({
         },
       });
     }),
+
+  updateRoomEmoji: protectedProcedure
+    .input(z.object({ roomId: z.string(), emoji: z.string() }))
+    .mutation(({ input, ctx }) => {
+      return ctx.prisma.rooms.update({
+        data: {
+          emoji: input.emoji,
+        },
+        where: {
+          id: input.roomId,
+        },
+      });
+    }),
 });

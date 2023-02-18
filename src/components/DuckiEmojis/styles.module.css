@@ -1,0 +1,28 @@
+/* add css module styles here (optional) */
+
+.test {
+  margin: 2em;
+  padding: 0.5em;
+  border: 2px solid #000;
+  font-size: 2em;
+  text-align: center;
+}
+
+.react-falling-emojis-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow-y: hidden;
+  pointer-events: none;
+}
+
+.emoji-container {
+  position: absolute;
+  font-size: 30px;
+  -webkit-user-select: none;
+  user-select: none;
+  opacity: 1;
+  opacity: 0;
+}

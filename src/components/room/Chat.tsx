@@ -18,6 +18,7 @@ import { api } from "../../utils/api";
 import { useAppContext } from "../../context/AppContext";
 import { ChatBubble } from "./ChatBubble";
 import EmojiPicker, { Theme } from "emoji-picker-react";
+import { ReactionBarSelector } from "@charkour/react-reactions";
 
 const sound = "/audio/message.wav";
 
@@ -31,6 +32,7 @@ export const Chat: FC<Props> = ({ room }) => {
   const createChatMutation = api.chats.createChat.useMutation();
   const chatsMutation = api.chats.chatsByRoomId.useMutation();
   const chatByIdMutation = api.chats.chatById.useMutation();
+  const emojiByRoomIdMutation = api.rooms.updateRoomEmoji.useMutation();
   /* -------------------------------------------------------------------------- */
   /*                                   CONTEXT                                  */
   /* -------------------------------------------------------------------------- */
@@ -116,15 +118,53 @@ export const Chat: FC<Props> = ({ room }) => {
     }
   }, [chatsMutation, firstChatsFetched, room.id]);
 
+  /**
+   * If the audioPlayer.current is not null, then play the audio.
+   */
   async function playAudio() {
     await audioPlayer.current?.play();
   }
 
+  /**
+   * SendChat is an async function that takes a string as an argument and calls the
+   * createChatMutation.mutateAsync function with the message and roomId as arguments.
+   * @param {string} message - The message to send
+   */
   async function sendChat(message: string) {
     await createChatMutation.mutateAsync({
       message: message,
       roomId: room.id,
     });
+  }
+
+  /**
+   * When the user clicks on a button, the emoji is set to the corresponding emoji.
+   * @param {string} label - string - this is the label of the emoji that the user clicked on.
+   */
+  async function setEmoji(label: string) {
+    let emoji = "";
+    switch (label) {
+      case "haha":
+        emoji = "😂";
+        break;
+      case "love":
+        emoji = "😍";
+        break;
+      case "starts":
+        emoji = "✨";
+        break;
+      case "wow":
+        emoji = "😲";
+        break;
+      case "cry":
+        emoji = "😭";
+        break;
+      case "angry":
+        emoji = "😡";
+        break;
+    }
+
+    await emojiByRoomIdMutation.mutateAsync({ roomId: room.id, emoji: emoji });
   }
 
   return (
@@ -144,6 +184,7 @@ export const Chat: FC<Props> = ({ room }) => {
             <div ref={chatContainerEndRef}></div>
           </div>
         </div>
+
         <Formik
           initialValues={{ message: "" }}
           validationSchema={toFormikValidationSchema(chatSchema)}
@@ -195,10 +236,56 @@ export const Chat: FC<Props> = ({ room }) => {
               </button>
               {
                 <div
-                  className={`absolute left-0 bottom-14 origin-bottom-left duration-200 ${
+                  className={`absolute left-0 bottom-14 flex origin-bottom-left flex-col gap-3 duration-200 ${
                     showEmojis ? "scale-100 opacity-100" : "scale-0 opacity-0"
                   }`}
                 >
+                  <div>
+                    <ReactionBarSelector
+                      style={{
+                        paddingRight: "14px",
+                        width: "100%",
+                        justifyContent: "space-between",
+                        backgroundColor: darkMode ? "#212121" : "#fff",
+                      }}
+                      reactions={[
+                        {
+                          label: "haha",
+                          node: <div>😂</div>,
+                          key: "haha",
+                        },
+                        {
+                          label: "love",
+                          node: <div>😍</div>,
+                          key: "love",
+                        },
+                        {
+                          label: "cry",
+                          node: <div>😭</div>,
+                          key: "cry",
+                        },
+                        {
+                          label: "angry",
+                          node: <div>😡</div>,
+                          key: "angry",
+                        },
+                        {
+                          label: "starts",
+                          node: <div>✨</div>,
+                          key: "starts",
+                        },
+                        {
+                          label: "wow",
+                          node: <div>😲</div>,
+                          key: "wow",
+                        },
+                      ]}
+                      onSelect={(emoji) => {
+                        setShowEmojis(false);
+                        void setEmoji(emoji);
+                      }}
+                    ></ReactionBarSelector>
+                  </div>
                   <EmojiPicker
                     theme={darkMode ? Theme.DARK : Theme.LIGHT}
                     width={"345px"}

@@ -1,5 +1,9 @@
 import type { Rooms, VideoActivities } from "@prisma/client";
-import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import type {
+  RealtimeChannel,
+  RealtimePostgresChangesPayload,
+} from "@supabase/supabase-js";
+import { delay } from "lodash";
 import { useSession } from "next-auth/react";
 import type { MutableRefObject } from "react";
 import React, { useEffect, useRef, useState, type FC } from "react";
@@ -9,6 +13,7 @@ import { supabase } from "../../context/supabase";
 import { api } from "../../utils/api";
 import { defaultDuration } from "../../utils/constants";
 import { isObjectEmpty } from "../../utils/helpers";
+import FallingEmojis from "../DuckiEmojis";
 import { VideoControls } from "./VideoControls";
 
 interface Props {
@@ -33,6 +38,9 @@ export const VideoActivity: FC<Props> = ({ room }) => {
   const playerRef: MutableRefObject<ReactPlayer | null> = useRef(null);
   const [isPip, setIsPip] = useState(false);
   const [duration, setDuration] = useState(defaultDuration);
+
+  const [emoji, setEmoji] = useState<string | null>(null);
+  const [showEmojis, setShowEmojis] = useState<boolean>(false);
 
   /* -------------------------------------------------------------------------- */
   /*                                  MUTATIONS                                 */
@@ -74,6 +82,38 @@ export const VideoActivity: FC<Props> = ({ room }) => {
       void subscription.unsubscribe();
     };
   }, [room, session?.user?.id, videoActivity.url]);
+
+  useEffect(() => {
+    let subscription: RealtimeChannel;
+    if (room.id) {
+      subscription = supabase
+        .channel("public:Rooms")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "Rooms",
+            filter: `id=eq.${room.id}`,
+          },
+          (payload: RealtimePostgresChangesPayload<Rooms>) => {
+            if (!isObjectEmpty(payload.new)) {
+              const newRoom = payload.new as Rooms;
+              if (newRoom.emoji) {
+                setTheEmoji(newRoom.emoji);
+              }
+              console.log("newRoom => emoji: ", newRoom.emoji);
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      void subscription?.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room.id]);
 
   /* -------------------------------------------------------------------------- */
   /*                                  FUNCTIONS                                 */
@@ -131,14 +171,33 @@ export const VideoActivity: FC<Props> = ({ room }) => {
       .then((newVideoActivity) => setVideoActivity(newVideoActivity));
   }
 
+  function setTheEmoji(emoji: string) {
+    setEmoji(emoji);
+
+    setShowEmojis(true);
+    delay(() => {
+      setShowEmojis(false);
+    }, 3000);
+  }
+
   return (
     <div className="relative flex aspect-video h-full w-[-webkit-fill-available] grow flex-col gap-3">
       <div
         onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
-        className={`!aspect-video h-fit min-h-[10rem] max-w-fit grow overflow-clip rounded-lg bg-base-200 hover:cursor-pointer ${
+        className={`relative !aspect-video h-fit min-h-[10rem] max-w-fit grow overflow-clip rounded-lg bg-base-200 hover:cursor-pointer ${
           duration === defaultDuration ? "animate-pulse" : ""
         } ${fullscreen ? "mx-auto w-screen bg-black" : ""}`}
       >
+        <div className="absolute top-0 bottom-0 left-0 right-0 z-10 select-none">
+          <FallingEmojis
+            repeat={-1}
+            speed={3}
+            emojis={[emoji ?? ""]}
+            disable={!showEmojis}
+            shake
+            density={20}
+          ></FallingEmojis>
+        </div>
         <ReactPlayer
           ref={playerRef}
           width={"100%"}

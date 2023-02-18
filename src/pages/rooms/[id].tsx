@@ -25,7 +25,7 @@ const RoomPage: NextPage = () => {
   return (
     <div>
       <PageComponent
-        title="Room"
+        title={`Ducki Party`}
         room={
           roomQuery.data &&
           roomQuery.data.videoActivity !== null &&
