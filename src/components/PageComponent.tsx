@@ -29,7 +29,7 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({
         <Toaster />
         <div
           data-theme={
-            fullscreen ? "halloween" : darkMode ? "dracula" : "cupcake"
+            fullscreen ? "halloween" : darkMode ? "dracula" : "bumblebee"
           }
         >
           {status === "loading" ? (
