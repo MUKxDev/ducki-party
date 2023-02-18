@@ -17,6 +17,7 @@ import { z } from "zod";
 import { api } from "../../utils/api";
 import { useAppContext } from "../../context/AppContext";
 import { ChatBubble } from "./ChatBubble";
+import EmojiPicker, { Theme } from "emoji-picker-react";
 
 const sound = "/audio/message.wav";
 
@@ -34,13 +35,22 @@ export const Chat: FC<Props> = ({ room }) => {
   /*                                   CONTEXT                                  */
   /* -------------------------------------------------------------------------- */
   const { data: session } = useSession();
-  const { fullscreen } = useAppContext();
+  const { fullscreen, darkMode } = useAppContext();
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   STATES                                   */
+  /* -------------------------------------------------------------------------- */
 
   const [chats, setChats] = useState<ChatWithUser[]>([]);
   const [firstChatsFetched, setFirstChatsFetched] = useState<boolean>(false);
+  const [showEmojis, setShowEmojis] = useState<boolean>(false);
 
+  /* -------------------------------------------------------------------------- */
+  /*                                    REFS                                    */
+  /* -------------------------------------------------------------------------- */
   const chatContainerEndRef = useRef<HTMLDivElement>(null);
   const audioPlayer = useRef<HTMLAudioElement>(null);
+
   const chatSchema = z.object({
     message: z.string(),
   });
@@ -120,7 +130,7 @@ export const Chat: FC<Props> = ({ room }) => {
   return (
     <div className="h-full grow">
       <audio ref={audioPlayer} src={sound} />
-      <div className="group flex h-full flex-col justify-between">
+      <div className="group relative flex h-full flex-col justify-between">
         <div
           className={`mb-3 grow overflow-y-scroll ${
             fullscreen ? "scrollbar-hide" : "scrollbar-default"
@@ -139,11 +149,12 @@ export const Chat: FC<Props> = ({ room }) => {
           validationSchema={toFormikValidationSchema(chatSchema)}
           onSubmit={async (values, { setSubmitting, resetForm }) => {
             resetForm();
+            setShowEmojis(false);
             await sendChat(values.message);
             setSubmitting(false);
           }}
         >
-          {({ isSubmitting, errors }) => (
+          {({ isSubmitting, errors, setFieldValue, values }) => (
             <Form
               className={`flex min-h-fit ${
                 fullscreen
@@ -151,7 +162,20 @@ export const Chat: FC<Props> = ({ room }) => {
                   : ""
               }`}
             >
-              <div className="flex w-full flex-col">
+              <label className="swap btn-ghost swap-rotate btn-square btn mr-3">
+                <input
+                  type="checkbox"
+                  checked={showEmojis}
+                  onChange={() => setShowEmojis(!showEmojis)}
+                />
+
+                <div className="swap-on">⛔</div>
+                <div className="swap-off">🐥</div>
+              </label>
+              <div
+                onFocus={() => setShowEmojis(false)}
+                className="flex w-full flex-col"
+              >
                 <Field
                   className={`input-bordered input w-full rounded-r-none`}
                   type="text"
@@ -169,6 +193,24 @@ export const Chat: FC<Props> = ({ room }) => {
               >
                 Send
               </button>
+              {
+                <div
+                  className={`absolute left-0 bottom-14 origin-bottom-left duration-200 ${
+                    showEmojis ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                  }`}
+                >
+                  <EmojiPicker
+                    theme={darkMode ? Theme.DARK : Theme.LIGHT}
+                    width={"345px"}
+                    onEmojiClick={(emoji) => {
+                      setFieldValue(
+                        "message",
+                        `${values.message}${emoji.emoji}`
+                      );
+                    }}
+                  />
+                </div>
+              }
             </Form>
           )}
         </Formik>
