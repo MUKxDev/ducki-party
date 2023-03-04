@@ -203,7 +203,7 @@ export const Chat: FC<Props> = ({ room }) => {
                   : ""
               }`}
             >
-              <label className="swap swap-rotate btn-square btn mr-3">
+              <label className="swap-rotate swap btn-square btn mr-3">
                 <input
                   type="checkbox"
                   checked={showEmojis}
@@ -286,16 +286,24 @@ export const Chat: FC<Props> = ({ room }) => {
                       }}
                     ></ReactionBarSelector>
                   </div>
-                  <EmojiPicker
-                    theme={darkMode ? Theme.DARK : Theme.LIGHT}
-                    width={"345px"}
-                    onEmojiClick={(emoji) => {
-                      setFieldValue(
-                        "message",
-                        `${values.message}${emoji.emoji}`
-                      );
-                    }}
-                  />
+                  <div
+                    className={`h-[450px] max-w-[345px] rounded-lg ${
+                      darkMode ? "bg-[#212121]" : "bg-[#fff]"
+                    }`}
+                  >
+                    {showEmojis && (
+                      <EmojiPicker
+                        theme={darkMode ? Theme.DARK : Theme.LIGHT}
+                        width={"345px"}
+                        onEmojiClick={(emoji) => {
+                          setFieldValue(
+                            "message",
+                            `${values.message}${emoji.emoji}`
+                          );
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
               }
             </Form>
