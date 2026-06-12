@@ -32,6 +32,14 @@ export const VideoActivity: FC<Props> = ({ room }) => {
     room.videoActivity
   );
   const playerRef: MutableRefObject<ReactPlayer | null> = useRef(null);
+  const hasInitialSeekedRef = useRef(false);
+  const lastUrlRef = useRef<string | null>(room.videoActivity.url);
+
+  if (lastUrlRef.current !== videoActivity.url) {
+    lastUrlRef.current = videoActivity.url;
+    hasInitialSeekedRef.current = false;
+  }
+
   const [isPip, setIsPip] = useState(false);
   const [duration, setDuration] = useState(defaultDuration);
   const [muted, setMuted] = useState(true);
@@ -92,7 +100,10 @@ export const VideoActivity: FC<Props> = ({ room }) => {
    * If the playerRef.current is not null, then seek to the videoActivity.seek.
    */
   function syncData() {
-    playerRef.current?.seekTo(videoActivity.seek);
+    if (!hasInitialSeekedRef.current) {
+      playerRef.current?.seekTo(videoActivity.seek);
+      hasInitialSeekedRef.current = true;
+    }
   }
 
   /**
@@ -165,27 +176,6 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           duration === defaultDuration ? "animate-pulse" : ""
         } ${fullscreen ? "mx-auto w-screen bg-black" : ""}`}
       >
-        {muted && videoActivity.isPlaying && (
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              setMuted(false);
-            }}
-            className="absolute top-4 left-4 z-20 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black/80 transition active:scale-95 select-none"
-          >
-            <span>🔇 Tap to Unmute</span>
-          </div>
-        )}
-        <div className="absolute top-0 bottom-0 left-0 right-0 z-10 select-none">
-          <FallingEmojis
-            repeat={-1}
-            speed={3}
-            emojis={[emoji ?? ""]}
-            disable={!showEmojis}
-            shake
-            density={20}
-          ></FallingEmojis>
-        </div>
         <ReactPlayer
           ref={playerRef}
           width={"100%"}
@@ -217,6 +207,27 @@ export const VideoActivity: FC<Props> = ({ room }) => {
             );
           }}
         />
+        <div className="absolute top-0 bottom-0 left-0 right-0 z-10 select-none pointer-events-none">
+          <FallingEmojis
+            repeat={-1}
+            speed={3}
+            emojis={[emoji ?? ""]}
+            disable={!showEmojis}
+            shake
+            density={20}
+          ></FallingEmojis>
+        </div>
+        {muted && videoActivity.isPlaying && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              setMuted(false);
+            }}
+            className="absolute top-4 left-4 z-20 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black/80 transition active:scale-95 select-none"
+          >
+            <span>🔇 Tap to Unmute</span>
+          </div>
+        )}
       </div>
       <div
         className={`max-w-full rounded-lg bg-base-200 p-4 ${
