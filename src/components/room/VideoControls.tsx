@@ -19,6 +19,8 @@ interface Props {
   onVideoActivitiesChange: (newVideoActivities: VideoActivities) => void;
   onPip: () => void;
   isPip: boolean;
+  muted: boolean;
+  onMuteToggle: () => void;
 }
 
 export const VideoControls: FC<Props> = ({
@@ -28,6 +30,8 @@ export const VideoControls: FC<Props> = ({
   playerRef,
   onPip,
   isPip,
+  muted,
+  onMuteToggle,
 }) => {
   /* -------------------------------------------------------------------------- */
   /*                                  CONTEXTS                                  */
@@ -184,6 +188,14 @@ export const VideoControls: FC<Props> = ({
         >{`${formateSecondsToMinutes(
           videoActivity.seek
         )} / ${formateSecondsToMinutes(Math.ceil(duration))}`}</p>
+
+        <div
+          className="mx-3 cursor-pointer text-lg select-none hover:scale-110 active:scale-95 transition"
+          onClick={() => onMuteToggle()}
+          title={muted ? "Unmute" : "Mute"}
+        >
+          {muted ? "🔇" : "🔊"}
+        </div>
 
         <div className="" onClick={() => onPip()}>
           {isPip ? (

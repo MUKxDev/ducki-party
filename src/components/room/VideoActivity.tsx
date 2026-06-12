@@ -34,6 +34,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
   const playerRef: MutableRefObject<ReactPlayer | null> = useRef(null);
   const [isPip, setIsPip] = useState(false);
   const [duration, setDuration] = useState(defaultDuration);
+  const [muted, setMuted] = useState(true);
 
   const [emoji, setEmoji] = useState<string | null>(null);
   const [showEmojis, setShowEmojis] = useState<boolean>(false);
@@ -164,6 +165,17 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           duration === defaultDuration ? "animate-pulse" : ""
         } ${fullscreen ? "mx-auto w-screen bg-black" : ""}`}
       >
+        {muted && videoActivity.isPlaying && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              setMuted(false);
+            }}
+            className="absolute top-4 left-4 z-20 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black/80 transition active:scale-95 select-none"
+          >
+            <span>🔇 Tap to Unmute</span>
+          </div>
+        )}
         <div className="absolute top-0 bottom-0 left-0 right-0 z-10 select-none">
           <FallingEmojis
             repeat={-1}
@@ -182,6 +194,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           controls={false}
           url={videoActivity.url ?? undefined}
           playing={videoActivity.isPlaying}
+          muted={muted}
           onReady={syncData}
           onDuration={setDuration}
           onPlay={() => {
@@ -218,6 +231,8 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           playerRef={playerRef}
           onPip={() => void pip()}
           isPip={isPip}
+          muted={muted}
+          onMuteToggle={() => setMuted(!muted)}
           onVideoActivitiesChange={(newVideoActivity) =>
             setVideoActivity(newVideoActivity)
           }
