@@ -18,9 +18,10 @@ const RoomPage: NextPage = () => {
 
   const { fullscreen } = useAppContext();
 
-  const roomQuery = api.rooms.roomById.useQuery({
-    roomId: id as string,
-  });
+  const roomQuery = api.rooms.roomById.useQuery(
+    { roomId: id as string },
+    { enabled: !!id }
+  );
 
   return (
     <div>

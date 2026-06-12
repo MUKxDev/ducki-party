@@ -39,8 +39,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, ch
       socketUrl = process.env.NEXT_PUBLIC_WS_URL;
     } else {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      // Default to localhost:3001 or current host if self-hosted
-      socketUrl = `${protocol}//${window.location.hostname}:3001`;
+      const hostname = window.location.hostname;
+      if (hostname === "party.mukxdev.com") {
+        socketUrl = "wss://party-ws.mukxdev.com";
+      } else {
+        // Default to localhost:3001 or current host if self-hosted
+        socketUrl = `${protocol}//${hostname}:3001`;
+      }
     }
 
     let reconnectTimeout: NodeJS.Timeout;
