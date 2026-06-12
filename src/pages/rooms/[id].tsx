@@ -15,12 +15,13 @@ export type RoomWithVideoActivity = Rooms & {
 const RoomPage: NextPage = () => {
   const { query } = useRouter();
   const { id } = query;
+  const roomIdNormalized = typeof id === "string" ? id.toUpperCase() : undefined;
 
   const { fullscreen } = useAppContext();
 
   const roomQuery = api.rooms.roomById.useQuery(
-    { roomId: id as string },
-    { enabled: !!id }
+    { roomId: roomIdNormalized as string },
+    { enabled: !!roomIdNormalized }
   );
 
   return (

@@ -21,7 +21,7 @@ export const chatsRouter = createTRPCRouter({
         },
         room: {
           connect: {
-            id: input.roomId,
+            id: input.roomId.toUpperCase(),
           },
         },
       };
@@ -36,7 +36,7 @@ export const chatsRouter = createTRPCRouter({
     .mutation(({ input, ctx }) => {
       return ctx.prisma.chats.findMany({
         where: {
-          roomId: input.roomId,
+          roomId: input.roomId.toUpperCase(),
         },
         include: {
           user: true,

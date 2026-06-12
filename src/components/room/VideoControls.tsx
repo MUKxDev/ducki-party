@@ -50,6 +50,7 @@ export const VideoControls: FC<Props> = ({
    * that updates the videoActivity state, which is a state that is used to update the video player.
    */
   async function play() {
+    onVideoActivitiesChange({ ...videoActivity, isPlaying: true });
     await playPauseMutation
       .mutateAsync({
         id: videoActivity.id,
@@ -67,6 +68,7 @@ export const VideoControls: FC<Props> = ({
    * that updates the videoActivity state, which is a state that is used to update the video player.
    */
   async function pause() {
+    onVideoActivitiesChange({ ...videoActivity, isPlaying: false });
     await playPauseMutation
       .mutateAsync({
         id: videoActivity.id,

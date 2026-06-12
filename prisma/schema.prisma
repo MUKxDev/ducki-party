@@ -41,7 +41,7 @@ model MangaActivities {
 }
 
 model Rooms {
-  id            String           @id @default(cuid())
+  id            String           @id
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   emoji         String?

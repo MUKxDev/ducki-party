@@ -116,6 +116,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
    * that updates the videoActivity state, which is a state that is used to update the video player.
    */
   async function play() {
+    setVideoActivity((prev) => ({ ...prev, isPlaying: true }));
     await playPauseMutation
       .mutateAsync({
         id: videoActivity.id,
@@ -133,6 +134,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
    * that updates the videoActivity state, which is a state that is used to update the video player.
    */
   async function pause() {
+    setVideoActivity((prev) => ({ ...prev, isPlaying: false }));
     await playPauseMutation
       .mutateAsync({
         id: videoActivity.id,

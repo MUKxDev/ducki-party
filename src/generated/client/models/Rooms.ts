@@ -235,7 +235,7 @@ export type RoomsScalarWhereWithAggregatesInput = {
 }
 
 export type RoomsCreateInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null
@@ -246,7 +246,7 @@ export type RoomsCreateInput = {
 }
 
 export type RoomsUncheckedCreateInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null
@@ -279,7 +279,7 @@ export type RoomsUncheckedUpdateInput = {
 }
 
 export type RoomsCreateManyInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null
@@ -378,7 +378,7 @@ export type EnumActivityTypeFieldUpdateOperationsInput = {
 }
 
 export type RoomsCreateWithoutChatsInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null
@@ -388,7 +388,7 @@ export type RoomsCreateWithoutChatsInput = {
 }
 
 export type RoomsUncheckedCreateWithoutChatsInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null
@@ -434,7 +434,7 @@ export type RoomsUncheckedUpdateWithoutChatsInput = {
 }
 
 export type RoomsCreateWithoutVideoActivityInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null
@@ -444,7 +444,7 @@ export type RoomsCreateWithoutVideoActivityInput = {
 }
 
 export type RoomsUncheckedCreateWithoutVideoActivityInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null
@@ -490,7 +490,7 @@ export type RoomsUncheckedUpdateWithoutVideoActivityInput = {
 }
 
 export type RoomsCreateWithoutMangaActivityInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null
@@ -500,7 +500,7 @@ export type RoomsCreateWithoutMangaActivityInput = {
 }
 
 export type RoomsUncheckedCreateWithoutMangaActivityInput = {
-  id?: string
+  id: string
   createdAt?: Date | string
   updatedAt?: Date | string
   emoji?: string | null

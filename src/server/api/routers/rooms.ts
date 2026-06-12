@@ -3,6 +3,15 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
+function generateRoomCode(length = 5): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 export const roomsRouter = createTRPCRouter({
   createVideoActivity: protectedProcedure
     .input(
@@ -11,11 +20,24 @@ export const roomsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      let roomId = generateRoomCode();
+      let attempts = 0;
+      // Enforce unique room codes
+      while (attempts < 10) {
+        const exists = await ctx.prisma.rooms.findUnique({
+          where: { id: roomId },
+        });
+        if (!exists) break;
+        roomId = generateRoomCode();
+        attempts++;
+      }
+
       const videoInput: Prisma.VideoActivitiesCreateInput = {
         url: input.url,
         lastUpdatedBy: ctx.session.user.id,
         room: {
           create: {
+            id: roomId,
             type: ActivityType.VIDEO,
           },
         },
@@ -31,7 +53,7 @@ export const roomsRouter = createTRPCRouter({
     .query(({ input, ctx }) => {
       return ctx.prisma.rooms.findUniqueOrThrow({
         where: {
-          id: input.roomId,
+          id: input.roomId.toUpperCase(),
         },
         include: {
           videoActivity: true,
@@ -44,7 +66,7 @@ export const roomsRouter = createTRPCRouter({
     .mutation(({ input, ctx }) => {
       return ctx.prisma.rooms.findUniqueOrThrow({
         where: {
-          id: input.roomId,
+          id: input.roomId.toUpperCase(),
         },
         include: {
           videoActivity: true,
@@ -60,7 +82,7 @@ export const roomsRouter = createTRPCRouter({
           emoji: input.emoji,
         },
         where: {
-          id: input.roomId,
+          id: input.roomId.toUpperCase(),
         },
       });
     }),
