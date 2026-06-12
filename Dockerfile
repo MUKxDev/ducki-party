@@ -3,13 +3,16 @@ FROM oven/bun:alpine
 WORKDIR /app
 
 # Copy package config
-COPY package.json bun.lockb* ./
+COPY package.json bun.lock* ./
 
 # Install dependencies
 RUN bun install
 
 # Copy source code
 COPY . .
+
+# Set a placeholder DATABASE_URL so prisma generate doesn't crash during build time
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
 # Run Prisma client generation
 RUN bun run postinstall

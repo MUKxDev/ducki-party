@@ -13,18 +13,14 @@ services:
       WS_PORT: 3001
       NODE_ENV: production
 
-  # Optional: Next.js App (if you choose to host it locally on Proxmox instead of Vercel)
-  # app:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: party-app
-  #   restart: always
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     NODE_ENV: production
-  #     DATABASE_URL: postgresql://party_user:change_this_to_a_strong_password@192.168.100.138:5432/ducki_party?schema=public
-  #     NEXTAUTH_SECRET: change_this_to_a_random_hash
-  #     NEXTAUTH_URL: https://party.mukxdev.com
-  #     NEXT_PUBLIC_WS_URL: wss://party-ws.mukxdev.com
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: party-app
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+
