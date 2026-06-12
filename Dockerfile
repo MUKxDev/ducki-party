@@ -21,6 +21,9 @@ RUN bun run postinstall
 ENV SKIP_ENV_VALIDATION=true
 RUN bun run build
 
+# Set hostname to 0.0.0.0 to allow external connections inside Docker
+ENV HOSTNAME="0.0.0.0"
+
 EXPOSE 3000
 
 # Start the server using Bun
