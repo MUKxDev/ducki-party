@@ -4,7 +4,7 @@ import type { NextPage } from "next";
 import { api } from "../../utils/api";
 import { VideoActivity } from "../../components/room/VideoActivity";
 import { useRouter } from "next/router";
-import type { Rooms, VideoActivities } from "@prisma/client";
+import type { Rooms, VideoActivities } from "../../generated/client";
 import { Chat } from "../../components/room/Chat";
 import { useAppContext } from "../../context/AppContext";
 

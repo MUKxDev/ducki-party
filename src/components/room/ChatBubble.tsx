@@ -1,4 +1,4 @@
-import type { Chats, User } from "@prisma/client";
+import type { Chats, User } from "../../generated/client";
 import { useSession } from "next-auth/react";
 import type { FC } from "react";
 import { useEffect, useState } from "react";

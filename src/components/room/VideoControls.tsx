@@ -1,4 +1,4 @@
-import type { VideoActivities } from "@prisma/client";
+import type { VideoActivities } from "../../generated/client";
 import type { FC, MutableRefObject } from "react";
 import React from "react";
 import PipOpen from "../../../public/icons/pip=open.svg";

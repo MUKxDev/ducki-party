@@ -1,4 +1,4 @@
-import type { Chats, Rooms, User } from "@prisma/client";
+import type { Chats, Rooms, User } from "../../generated/client";
 import type { FC } from "react";
 import { useRef } from "react";
 import { useState } from "react";

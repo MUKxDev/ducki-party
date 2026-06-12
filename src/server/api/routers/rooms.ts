@@ -1,4 +1,4 @@
-import { ActivityType, type Prisma } from "@prisma/client";
+import { ActivityType, type Prisma } from "../../../generated/client";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";

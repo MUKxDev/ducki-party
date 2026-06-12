@@ -1,4 +1,4 @@
-import type { Rooms, VideoActivities } from "@prisma/client";
+import type { Rooms, VideoActivities } from "../../generated/client";
 import { delay } from "lodash";
 import { useSession } from "next-auth/react";
 import type { MutableRefObject } from "react";
