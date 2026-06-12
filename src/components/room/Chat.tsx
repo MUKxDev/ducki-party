@@ -1,15 +1,9 @@
 import type { Chats, Rooms, User } from "@prisma/client";
-import type {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from "@supabase/supabase-js";
 import type { FC } from "react";
 import { useRef } from "react";
 import { useState } from "react";
 import { useEffect } from "react";
 import React from "react";
-import { supabase } from "../../context/supabase";
-import { isObjectEmpty } from "../../utils/helpers";
 import { useSession } from "next-auth/react";
 import { Field, Form, Formik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
@@ -19,6 +13,7 @@ import { useAppContext } from "../../context/AppContext";
 import { ChatBubble } from "./ChatBubble";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { ReactionBarSelector } from "@charkour/react-reactions";
+import { useWebSocket } from "../../context/WebSocketContext";
 
 const sound = "/audio/message.wav";
 
@@ -31,13 +26,13 @@ type ChatWithUser = Chats & { user: User };
 export const Chat: FC<Props> = ({ room }) => {
   const createChatMutation = api.chats.createChat.useMutation();
   const chatsMutation = api.chats.chatsByRoomId.useMutation();
-  const chatByIdMutation = api.chats.chatById.useMutation();
   const emojiByRoomIdMutation = api.rooms.updateRoomEmoji.useMutation();
   /* -------------------------------------------------------------------------- */
   /*                                   CONTEXT                                  */
   /* -------------------------------------------------------------------------- */
   const { data: session } = useSession();
   const { fullscreen, darkMode } = useAppContext();
+  const { sendBroadcast, subscribe: subscribeWS } = useWebSocket();
 
   /* -------------------------------------------------------------------------- */
   /*                                   STATES                                   */
@@ -62,49 +57,19 @@ export const Chat: FC<Props> = ({ room }) => {
   }, [chats, fullscreen]);
 
   useEffect(() => {
-    let subscription: RealtimeChannel;
-    if (room.id) {
-      subscription = supabase
-        .channel("public:Chats")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "Chats",
-            filter: `roomId=eq.${room.id}`,
-          },
-          (payload: RealtimePostgresChangesPayload<Chats>) => {
-            if (!isObjectEmpty(payload.new)) {
-              const newChat = payload.new as Chats;
-              if (newChat.userId !== session?.user?.id) {
-                void getChatWithUser(newChat.id).then(() => void playAudio());
-              } else {
-                const newChatToAdd = Object.assign(Object.create(newChat), {
-                  user: session.user,
-                }) as ChatWithUser;
-                setChats((chats) => [...chats, newChatToAdd]);
-              }
-            }
-          }
-        )
-        .subscribe();
-    }
-
-    async function getChatWithUser(id: string) {
-      const newChatToAdd = await chatByIdMutation.mutateAsync({ id: id });
-      console.table(newChatToAdd);
-
-      if (newChatToAdd) {
-        setChats((chats) => [...chats, newChatToAdd]);
+    const unsubscribe = subscribeWS("CHAT_CREATED", (payload: unknown) => {
+      const chatPayload = payload as { chat: ChatWithUser };
+      const newChat = chatPayload?.chat;
+      if (newChat && newChat.userId !== session?.user?.id) {
+        setChats((chats) => [...chats, newChat]);
+        void playAudio();
       }
-    }
+    });
 
     return () => {
-      void subscription?.unsubscribe();
+      unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room.id, session?.user?.id]);
+  }, [subscribeWS, session?.user?.id]);
 
   useEffect(() => {
     async function initChats() {
@@ -131,10 +96,27 @@ export const Chat: FC<Props> = ({ room }) => {
    * @param {string} message - The message to send
    */
   async function sendChat(message: string) {
-    await createChatMutation.mutateAsync({
+    const newChat = await createChatMutation.mutateAsync({
       message: message,
       roomId: room.id,
     });
+
+    if (newChat && session?.user) {
+      const chatWithUser = {
+        ...newChat,
+        user: {
+          id: session.user.id,
+          name: session.user.name ?? null,
+          email: session.user.email ?? null,
+          image: session.user.image ?? null,
+          emailVerified: null,
+          password: null,
+        },
+      } as ChatWithUser;
+
+      setChats((chats) => [...chats, chatWithUser]);
+      sendBroadcast("CHAT_CREATED", { chat: chatWithUser });
+    }
   }
 
   /**
@@ -165,6 +147,7 @@ export const Chat: FC<Props> = ({ room }) => {
     }
 
     await emojiByRoomIdMutation.mutateAsync({ roomId: room.id, emoji: emoji });
+    sendBroadcast("EMOJI_UPDATED", { emoji: emoji });
   }
 
   return (
@@ -296,7 +279,7 @@ export const Chat: FC<Props> = ({ room }) => {
                         theme={darkMode ? Theme.DARK : Theme.LIGHT}
                         width={"345px"}
                         onEmojiClick={(emoji) => {
-                          setFieldValue(
+                          void setFieldValue(
                             "message",
                             `${values.message}${emoji.emoji}`
                           );

@@ -1,7 +1,6 @@
-// import { NextApiRequest, NextApiResponse } from 'next';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { verifySignature } from "@upstash/qstash/nextjs";
-import { supabase } from "../../context/supabase";
+import { prisma } from "../../server/db";
 import moment from "moment";
 
 type Data = {
@@ -20,18 +19,18 @@ async function handler(
 ) {
   if (req.method === "POST") {
     try {
-      const now = moment().subtract(1, "day");
-      const { data, error } = await supabase
-        .from("Rooms")
-        .delete()
-        .lte("createdAt", now.toISOString())
-        .select("id");
-
-      if (error) throw error;
+      const now = moment().subtract(1, "day").toDate();
+      const result = await prisma.rooms.deleteMany({
+        where: {
+          createdAt: {
+            lte: now,
+          },
+        },
+      });
 
       res.status(200).json({
         success: true,
-        numberOfDeletedRooms: data.length,
+        numberOfDeletedRooms: result.count,
       });
     } catch (err) {
       const e = err as Error;

@@ -10,6 +10,7 @@ import type ReactPlayer from "react-player";
 import { getTrackBackground, Range } from "react-range";
 import { useAppContext } from "../../context/AppContext";
 import { defaultDuration } from "../../utils/constants";
+import { useWebSocket } from "../../context/WebSocketContext";
 
 interface Props {
   videoActivity: VideoActivities;
@@ -32,6 +33,7 @@ export const VideoControls: FC<Props> = ({
   /*                                  CONTEXTS                                  */
   /* -------------------------------------------------------------------------- */
   const { darkMode } = useAppContext();
+  const { sendBroadcast } = useWebSocket();
 
   /* -------------------------------------------------------------------------- */
   /*                                  MUTATIONS                                 */
@@ -54,7 +56,10 @@ export const VideoControls: FC<Props> = ({
         seek: playerRef.current?.getCurrentTime() ?? 0,
         isPlaying: true,
       })
-      .then((newVideoActivity) => onVideoActivitiesChange(newVideoActivity));
+      .then((newVideoActivity) => {
+        onVideoActivitiesChange(newVideoActivity);
+        sendBroadcast("VIDEO_STATE_UPDATED", { videoActivity: newVideoActivity });
+      });
   }
 
   /**
@@ -68,7 +73,10 @@ export const VideoControls: FC<Props> = ({
         seek: playerRef.current?.getCurrentTime() ?? 0,
         isPlaying: false,
       })
-      .then((newVideoActivity) => onVideoActivitiesChange(newVideoActivity));
+      .then((newVideoActivity) => {
+        onVideoActivitiesChange(newVideoActivity);
+        sendBroadcast("VIDEO_STATE_UPDATED", { videoActivity: newVideoActivity });
+      });
   }
 
   /**
@@ -81,7 +89,10 @@ export const VideoControls: FC<Props> = ({
         id: videoActivity.id,
         seek: playerRef.current?.getCurrentTime() ?? 0,
       })
-      .then((newVideoActivity) => onVideoActivitiesChange(newVideoActivity));
+      .then((newVideoActivity) => {
+        onVideoActivitiesChange(newVideoActivity);
+        sendBroadcast("VIDEO_STATE_UPDATED", { videoActivity: newVideoActivity });
+      });
   }
 
   /**

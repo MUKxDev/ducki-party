@@ -1,20 +1,15 @@
 import type { Rooms, VideoActivities } from "@prisma/client";
-import type {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from "@supabase/supabase-js";
 import { delay } from "lodash";
 import { useSession } from "next-auth/react";
 import type { MutableRefObject } from "react";
 import React, { useEffect, useRef, useState, type FC } from "react";
 import ReactPlayer from "react-player";
 import { useAppContext } from "../../context/AppContext";
-import { supabase } from "../../context/supabase";
 import { api } from "../../utils/api";
 import { defaultDuration } from "../../utils/constants";
-import { isObjectEmpty } from "../../utils/helpers";
 import FallingEmojis from "../DuckiEmojis";
 import { VideoControls } from "./VideoControls";
+import { useWebSocket } from "../../context/WebSocketContext";
 
 interface Props {
   room: Rooms & {
@@ -28,6 +23,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
   /* -------------------------------------------------------------------------- */
   const { data: session } = useSession();
   const { fullscreen } = useAppContext();
+  const { sendBroadcast, subscribe: subscribeWS } = useWebSocket();
 
   /* -------------------------------------------------------------------------- */
   /*                                   STATES                                   */
@@ -50,70 +46,42 @@ export const VideoActivity: FC<Props> = ({ room }) => {
   /* -------------------------------------------------------------------------- */
   /*                                 USEEFFECTS                                 */
   /* -------------------------------------------------------------------------- */
-  /* Subscribing to a channel that is listening for changes to the videoActivity. */
+  /* Subscribing to changes via WebSocket. */
   useEffect(() => {
-    const subscription = supabase
-      .channel("public:VideoActivities")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "VideoActivities",
-          filter: `id=eq.${room.videoActivity?.id ?? ""}`,
-        },
-        (payload: RealtimePostgresChangesPayload<VideoActivities>) => {
-          if (!isObjectEmpty(payload.new)) {
-            const newVideoActivity = payload.new as VideoActivities;
-            if (
-              newVideoActivity.lastUpdatedBy !== session?.user?.id ||
-              newVideoActivity.url !== videoActivity.url
-            ) {
-              console.log(`Updated by: ${newVideoActivity.lastUpdatedBy}`);
-              setVideoActivity(newVideoActivity);
-              playerRef.current?.seekTo(newVideoActivity.seek);
-            }
-          }
+    const unsubscribe = subscribeWS("VIDEO_STATE_UPDATED", (payload: unknown) => {
+      const statePayload = payload as { videoActivity: VideoActivities };
+      const newVideoActivity = statePayload?.videoActivity;
+      if (newVideoActivity) {
+        if (
+          newVideoActivity.lastUpdatedBy !== session?.user?.id ||
+          newVideoActivity.url !== videoActivity.url
+        ) {
+          console.log(`Updated by: ${newVideoActivity.lastUpdatedBy}`);
+          setVideoActivity(newVideoActivity);
+          playerRef.current?.seekTo(newVideoActivity.seek);
         }
-      )
-      .subscribe();
+      }
+    });
 
     return () => {
-      void subscription.unsubscribe();
+      unsubscribe();
     };
-  }, [room, session?.user?.id, videoActivity.url]);
+  }, [subscribeWS, session?.user?.id, videoActivity.url]);
 
   useEffect(() => {
-    let subscription: RealtimeChannel;
-    if (room.id) {
-      subscription = supabase
-        .channel("public:Rooms")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "Rooms",
-            filter: `id=eq.${room.id}`,
-          },
-          (payload: RealtimePostgresChangesPayload<Rooms>) => {
-            if (!isObjectEmpty(payload.new)) {
-              const newRoom = payload.new as Rooms;
-              if (newRoom.emoji) {
-                setTheEmoji(newRoom.emoji);
-              }
-              console.log("newRoom => emoji: ", newRoom.emoji);
-            }
-          }
-        )
-        .subscribe();
-    }
+    const unsubscribe = subscribeWS("EMOJI_UPDATED", (payload: unknown) => {
+      const emojiPayload = payload as { emoji: string };
+      const emojiStr = emojiPayload?.emoji;
+      if (emojiStr) {
+        setTheEmoji(emojiStr);
+        console.log("newRoom => emoji: ", emojiStr);
+      }
+    });
 
     return () => {
-      void subscription?.unsubscribe();
+      unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room.id]);
+  }, [subscribeWS]);
 
   /* -------------------------------------------------------------------------- */
   /*                                  FUNCTIONS                                 */
@@ -154,7 +122,10 @@ export const VideoActivity: FC<Props> = ({ room }) => {
         seek: playerRef.current?.getCurrentTime() ?? 0,
         isPlaying: true,
       })
-      .then((newVideoActivity) => setVideoActivity(newVideoActivity));
+      .then((newVideoActivity) => {
+        setVideoActivity(newVideoActivity);
+        sendBroadcast("VIDEO_STATE_UPDATED", { videoActivity: newVideoActivity });
+      });
   }
 
   /**
@@ -168,7 +139,10 @@ export const VideoActivity: FC<Props> = ({ room }) => {
         seek: playerRef.current?.getCurrentTime() ?? 0,
         isPlaying: false,
       })
-      .then((newVideoActivity) => setVideoActivity(newVideoActivity));
+      .then((newVideoActivity) => {
+        setVideoActivity(newVideoActivity);
+        sendBroadcast("VIDEO_STATE_UPDATED", { videoActivity: newVideoActivity });
+      });
   }
 
   function setTheEmoji(emoji: string) {
@@ -209,10 +183,10 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           onReady={syncData}
           onDuration={setDuration}
           onPlay={() => {
-            isPip && play();
+            isPip && void play();
           }}
           onPause={() => {
-            isPip && pause();
+            isPip && void pause();
           }}
           onDisablePIP={() => {
             setIsPip(false);

@@ -11,6 +11,7 @@ import { api } from "../utils/api";
 import Maximize from "../../public/icons/maximize.svg";
 import Minimize from "../../public/icons/minimize.svg";
 import Globe from "../../public/icons/globe.svg";
+import { useOptionalWebSocket } from "../context/WebSocketContext";
 
 interface Props {
   user: User;
@@ -27,6 +28,7 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
   room,
 }) => {
   const updateURLMutation = api.video.updateUrl.useMutation();
+  const ws = useOptionalWebSocket();
 
   const { darkMode, updateDarkMode, fullscreen, updateFullscreen } =
     useAppContext();
@@ -38,8 +40,9 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
           id: room.videoActivity.id,
           url: newUrl,
         })
-        .then(() => {
+        .then((newVideoActivity) => {
           document.getElementById("my-modal-4")?.click();
+          ws?.sendBroadcast("VIDEO_STATE_UPDATED", { videoActivity: newVideoActivity });
         });
   }
 

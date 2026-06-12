@@ -4,6 +4,7 @@ import { signIn, useSession } from "next-auth/react";
 import { Layout } from "./Layout";
 import { Toaster } from "react-hot-toast";
 import { useAppContext } from "../context/AppContext";
+import { WebSocketProvider } from "../context/WebSocketContext";
 
 import type { RoomWithVideoActivity } from "../pages/rooms/[id]";
 
@@ -52,8 +53,14 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({
                     </button>
                   </div>
                 </div>
+              ) : room ? (
+                <WebSocketProvider roomId={room.id}>
+                  <Layout user={sessionData.user} room={room}>
+                    {children}
+                  </Layout>
+                </WebSocketProvider>
               ) : (
-                <Layout user={sessionData.user} room={room}>
+                <Layout user={sessionData.user}>
                   {children}
                 </Layout>
               )}

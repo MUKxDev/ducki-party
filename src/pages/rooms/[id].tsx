@@ -36,7 +36,7 @@ const RoomPage: NextPage = () => {
       >
         {roomQuery.isInitialLoading ? (
           <progress className="progress mx-auto w-56"></progress>
-        ) : (
+        ) : roomQuery.data ? (
           <div
             className={`flex max-h-full grow grid-cols-7 flex-col gap-3 p-3 lg:grid ${
               fullscreen ? "!p-0" : ""
@@ -49,27 +49,27 @@ const RoomPage: NextPage = () => {
                   : ""
               }`}
             >
-              {roomQuery.data &&
-                roomQuery.data.videoActivity !== null &&
+              {roomQuery.data.videoActivity !== null &&
                 roomQuery.data.type === "VIDEO" && (
                   <VideoActivity
                     room={roomQuery.data as RoomWithVideoActivity}
                   ></VideoActivity>
                 )}
-              {!roomQuery.data && <div>Room has not been found</div>}
             </div>
 
-            {roomQuery.data && (
-              <div
-                className={`col-span-7 min-h-[30%] grow rounded-xl bg-base-300 p-3 lg:col-span-2 ${
-                  fullscreen
-                    ? "absolute bottom-20 right-0 z-10 h-60 bg-transparent "
-                    : ""
-                }`}
-              >
-                <Chat room={roomQuery.data} />
-              </div>
-            )}
+            <div
+              className={`col-span-7 min-h-[30%] grow rounded-xl bg-base-300 p-3 lg:col-span-2 ${
+                fullscreen
+                  ? "absolute bottom-20 right-0 z-10 h-60 bg-transparent "
+                  : ""
+              }`}
+            >
+              <Chat room={roomQuery.data} />
+            </div>
+          </div>
+        ) : (
+          <div className="flex h-56 w-full items-center justify-center font-semibold text-error">
+            Room has not been found
           </div>
         )}
       </PageComponent>
