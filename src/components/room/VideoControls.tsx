@@ -98,6 +98,15 @@ export const VideoControls: FC<Props> = ({
       .then((newVideoActivity) => {
         onVideoActivitiesChange(newVideoActivity);
         sendBroadcast("VIDEO_STATE_UPDATED", { videoActivity: newVideoActivity });
+
+        if (newVideoActivity.isPlaying) {
+          const internalPlayer = playerRef.current?.getInternalPlayer() as HTMLVideoElement | null;
+          if (internalPlayer && typeof internalPlayer.play === "function") {
+            internalPlayer.play().catch((err) => {
+              console.warn("Failed to force play after seek:", err);
+            });
+          }
+        }
       });
   }
 
