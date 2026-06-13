@@ -1,10 +1,7 @@
 import type { VideoActivities } from "../../generated/client";
 import type { FC, MutableRefObject } from "react";
 import React from "react";
-import PipOpen from "../../../public/icons/pip=open.svg";
-import PipClose from "../../../public/icons/pip=close.svg";
-import Play from "../../../public/icons/play-pause=play.svg";
-import Pause from "../../../public/icons/play-pause=pause.svg";
+import { Play, Pause, Tv, Volume2, VolumeX, Maximize2, Minimize2 } from "lucide-react";
 import { api } from "../../utils/api";
 import type ReactPlayer from "react-player";
 import { getTrackBackground, Range } from "react-range";
@@ -21,6 +18,8 @@ interface Props {
   isPip: boolean;
   muted: boolean;
   onMuteToggle: () => void;
+  fullscreen: boolean;
+  onFullscreenToggle: () => void;
 }
 
 export const VideoControls: FC<Props> = ({
@@ -32,6 +31,8 @@ export const VideoControls: FC<Props> = ({
   isPip,
   muted,
   onMuteToggle,
+  fullscreen,
+  onFullscreenToggle,
 }) => {
   /* -------------------------------------------------------------------------- */
   /*                                  CONTEXTS                                  */
@@ -48,6 +49,24 @@ export const VideoControls: FC<Props> = ({
   /* -------------------------------------------------------------------------- */
   /*                                  FUNCTIONS                                 */
   /* -------------------------------------------------------------------------- */
+
+  const handleFullscreenClick = () => {
+    const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (isMobileDevice) {
+      const videoEl = playerRef.current?.getInternalPlayer() as HTMLVideoElement | null;
+      if (videoEl) {
+        if (videoEl.requestFullscreen) {
+          videoEl.requestFullscreen().catch((err) => console.error("Native fullscreen failed:", err));
+        } else if ((videoEl as any).webkitRequestFullscreen) {
+          (videoEl as any).webkitRequestFullscreen();
+        } else if ((videoEl as any).webkitEnterFullscreen) {
+          (videoEl as any).webkitEnterFullscreen();
+        }
+      }
+    } else {
+      onFullscreenToggle();
+    }
+  };
 
   /**
    * play() is an async function that calls the playPauseMutation mutation, which is a GraphQL mutation
@@ -129,25 +148,26 @@ export const VideoControls: FC<Props> = ({
   }
 
   return duration === defaultDuration ? (
-    <div className="flex items-center justify-center">
-      <progress className="progress mx-auto w-56"></progress>
+    <div className="flex items-center justify-center py-4">
+      <span className="loading loading-dots loading-md text-primary"></span>
     </div>
   ) : (
-    <div className="flex flex-col">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-1 md:gap-2">
+      <div className="flex items-center justify-between gap-2 md:gap-4">
+        {/* Play/Pause Button */}
         <div
-          className=""
+          className="cursor-pointer p-1 hover:bg-slate-700/10 dark:hover:bg-slate-300/10 rounded-full active:scale-90 transition select-none flex items-center justify-center h-8 w-8 md:h-10 md:w-10"
           onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
         >
           {videoActivity.isPlaying ? (
-            <Pause className="cursor-pointer fill-base-content" />
+            <Pause className="h-4 w-4 md:h-5 md:w-5 fill-current text-slate-200" />
           ) : (
-            <Play className="cursor-pointer fill-base-content " />
+            <Play className="h-4 w-4 md:h-5 md:w-5 fill-current text-primary" />
           )}
         </div>
 
-        {/* desktop slider */}
-        <div className={"hidden grow p-3 md:block"}>
+        {/* Desktop Slider */}
+        <div className="hidden grow px-2 py-3 md:block">
           <Range
             min={0.0}
             max={Math.ceil(duration)}
@@ -157,7 +177,6 @@ export const VideoControls: FC<Props> = ({
                   seek: values[0],
                 }) as VideoActivities
               );
-              // setSeek(values[0]);
               playerRef.current?.seekTo(values[0] ?? videoActivity.seek);
             }}
             onFinalChange={() => void syncSeek()}
@@ -165,21 +184,19 @@ export const VideoControls: FC<Props> = ({
             renderThumb={({ props }) => (
               <div
                 {...props}
-                className={`aspect-square  w-5 rounded-full ${
-                  darkMode ? "bg-base-content" : "bg-[#4f86a0]"
-                }`}
+                className="aspect-square w-4 rounded-full bg-primary shadow-lg border border-slate-950/20 cursor-grab active:cursor-grabbing hover:scale-125 transition outline-none"
               />
             )}
             renderTrack={({ props, children }) => (
               <div
                 {...props}
-                className={`h-3 w-full cursor-pointer rounded-full border border-neutral`}
+                className="h-2 w-full cursor-pointer rounded-full border border-slate-700/10 shadow-inner"
                 style={{
                   background: getTrackBackground({
                     values: [videoActivity.seek],
                     colors: darkMode
-                      ? ["#87827f", "#c2bdba"]
-                      : ["#70ACC7", "#E7E2DF"],
+                      ? ["#fbbf24", "#374151"]
+                      : ["#d97706", "#e5e7eb"],
                     min: 0.0,
                     max: Math.ceil(duration),
                   }),
@@ -191,31 +208,52 @@ export const VideoControls: FC<Props> = ({
           ></Range>
         </div>
 
-        {/* seek/duration */}
-        <p
-          className={"mx-4 select-none text-base-content"}
-        >{`${formateSecondsToMinutes(
-          videoActivity.seek
-        )} / ${formateSecondsToMinutes(Math.ceil(duration))}`}</p>
+        {/* Seek/Duration Time */}
+        <p className="font-mono text-xs md:text-sm tracking-tight select-none opacity-80 shrink-0">
+          {`${formateSecondsToMinutes(videoActivity.seek)} / ${formateSecondsToMinutes(Math.ceil(duration))}`}
+        </p>
 
-        <div
-          className="mx-3 cursor-pointer text-lg select-none hover:scale-110 active:scale-95 transition"
-          onClick={() => onMuteToggle()}
-          title={muted ? "Unmute" : "Mute"}
-        >
-          {muted ? "🔇" : "🔊"}
-        </div>
+        {/* Mute and PiP Buttons */}
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          <button
+            type="button"
+            className="cursor-pointer p-1 hover:bg-slate-700/10 dark:hover:bg-slate-300/10 rounded-full active:scale-90 transition select-none flex items-center justify-center h-8 w-8 md:h-10 md:w-10"
+            onClick={() => onMuteToggle()}
+            title={muted ? "Unmute" : "Mute"}
+          >
+            {muted ? (
+              <VolumeX className="h-4 w-4 md:h-5 md:w-5 text-error" />
+            ) : (
+              <Volume2 className="h-4 w-4 md:h-5 md:w-5 text-success" />
+            )}
+          </button>
 
-        <div className="" onClick={() => onPip()}>
-          {isPip ? (
-            <PipClose className="cursor-pointer fill-base-content" />
-          ) : (
-            <PipOpen className="cursor-pointer fill-base-content" />
-          )}
+          <button
+            type="button"
+            className="cursor-pointer p-1 hover:bg-slate-700/10 dark:hover:bg-slate-300/10 rounded-full active:scale-90 transition select-none flex items-center justify-center h-8 w-8 md:h-10 md:w-10"
+            onClick={() => onPip()}
+            title={isPip ? "Exit PiP" : "Enter PiP"}
+          >
+            <Tv className={`h-4 w-4 md:h-5 md:w-5 ${isPip ? "text-primary fill-primary/10" : ""}`} />
+          </button>
+
+          <button
+            type="button"
+            className="cursor-pointer p-1 hover:bg-slate-700/10 dark:hover:bg-slate-300/10 rounded-full active:scale-90 transition select-none flex items-center justify-center h-8 w-8 md:h-10 md:w-10"
+            onClick={handleFullscreenClick}
+            title="Toggle Fullscreen"
+          >
+            {fullscreen ? (
+              <Minimize2 className="h-4 w-4 md:h-5 md:w-5" />
+            ) : (
+              <Maximize2 className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+            )}
+          </button>
         </div>
       </div>
+
       {/* Mobile Slider */}
-      <div className={"p-3 md:hidden"}>
+      <div className="px-1 py-1.5 md:hidden">
         <Range
           min={0.0}
           max={Math.ceil(duration)}
@@ -226,7 +264,6 @@ export const VideoControls: FC<Props> = ({
                 seek: values[0],
               }) as VideoActivities
             );
-            // setSeek(values[0]);
             playerRef.current?.seekTo(values[0] ?? videoActivity.seek);
           }}
           onFinalChange={() => void syncSeek()}
@@ -234,21 +271,19 @@ export const VideoControls: FC<Props> = ({
           renderThumb={({ props }) => (
             <div
               {...props}
-              className={`aspect-square  w-5 rounded-full ${
-                darkMode ? "bg-base-content" : "bg-[#4f86a0]"
-              }`}
+              className="aspect-square w-4 rounded-full bg-primary shadow-lg border border-slate-950/20 cursor-grab active:cursor-grabbing outline-none"
             />
           )}
           renderTrack={({ props, children }) => (
             <div
               {...props}
-              className={`h-3 w-full rounded-full border border-neutral `}
+              className="h-1.5 w-full cursor-pointer rounded-full border border-slate-700/10 shadow-inner"
               style={{
                 background: getTrackBackground({
                   values: [videoActivity.seek],
                   colors: darkMode
-                    ? ["#87827f", "#c2bdba"]
-                    : ["#70ACC7", "#E7E2DF"],
+                    ? ["#fbbf24", "#374151"]
+                    : ["#d97706", "#e5e7eb"],
                   min: 0.0,
                   max: Math.ceil(duration),
                 }),

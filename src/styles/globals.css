@@ -1,3 +1,89 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply transition-colors duration-300;
+  }
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.45);
+}
+
+/* Glassmorphism Panel UTILITY */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Glowing Neon Elements */
+.glow-primary {
+  box-shadow: 0 0 15px -3px rgba(251, 191, 36, 0.4);
+}
+
+.glow-secondary {
+  box-shadow: 0 0 15px -3px rgba(6, 182, 212, 0.4);
+}
+
+/* Floating Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Custom Gradient Backgrounds */
+.bg-cosmic-grid {
+  background-color: #0b0f19;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(251, 191, 36, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+}
+
+.bg-cosmic-grid-light {
+  background-color: #f9fafb;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(217, 119, 6, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(8, 145, 178, 0.03) 0%, transparent 40%);
+}
+
+/* Rounded corners for the video and iframe elements inside player wrappers */
+.rounded-xl video,
+.rounded-xl iframe,
+.rounded-xl .react-player {
+  border-radius: 0.75rem !important;
+  overflow: hidden !important;
+}

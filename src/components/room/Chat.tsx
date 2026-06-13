@@ -14,6 +14,7 @@ import { ChatBubble } from "./ChatBubble";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { ReactionBarSelector } from "@charkour/react-reactions";
 import { useWebSocket } from "../../context/WebSocketContext";
+import { toast } from "react-hot-toast";
 
 const sound = "/audio/message.wav";
 
@@ -27,6 +28,7 @@ export const Chat: FC<Props> = ({ room }) => {
   const createChatMutation = api.chats.createChat.useMutation();
   const chatsMutation = api.chats.chatsByRoomId.useMutation();
   const emojiByRoomIdMutation = api.rooms.updateRoomEmoji.useMutation();
+
   /* -------------------------------------------------------------------------- */
   /*                                   CONTEXT                                  */
   /* -------------------------------------------------------------------------- */
@@ -37,7 +39,6 @@ export const Chat: FC<Props> = ({ room }) => {
   /* -------------------------------------------------------------------------- */
   /*                                   STATES                                   */
   /* -------------------------------------------------------------------------- */
-
   const [chats, setChats] = useState<ChatWithUser[]>([]);
   const [firstChatsFetched, setFirstChatsFetched] = useState<boolean>(false);
   const [showEmojis, setShowEmojis] = useState<boolean>(false);
@@ -49,7 +50,7 @@ export const Chat: FC<Props> = ({ room }) => {
   const audioPlayer = useRef<HTMLAudioElement>(null);
 
   const chatSchema = z.object({
-    message: z.string(),
+    message: z.string().min(1, "Message cannot be empty"),
   });
 
   useEffect(() => {
@@ -83,18 +84,12 @@ export const Chat: FC<Props> = ({ room }) => {
     }
   }, [chatsMutation, firstChatsFetched, room.id]);
 
-  /**
-   * If the audioPlayer.current is not null, then play the audio.
-   */
   async function playAudio() {
-    await audioPlayer.current?.play();
+    await audioPlayer.current?.play().catch(() => {
+      // Browser autoplay policy might block audio until interaction
+    });
   }
 
-  /**
-   * SendChat is an async function that takes a string as an argument and calls the
-   * createChatMutation.mutateAsync function with the message and roomId as arguments.
-   * @param {string} message - The message to send
-   */
   async function sendChat(message: string) {
     const newChat = await createChatMutation.mutateAsync({
       message: message,
@@ -119,10 +114,6 @@ export const Chat: FC<Props> = ({ room }) => {
     }
   }
 
-  /**
-   * When the user clicks on a button, the emoji is set to the corresponding emoji.
-   * @param {string} label - string - this is the label of the emoji that the user clicked on.
-   */
   async function setEmoji(label: string) {
     let emoji = "";
     switch (label) {
@@ -151,148 +142,224 @@ export const Chat: FC<Props> = ({ room }) => {
   }
 
   return (
-    <div className="h-full grow">
+    <div className="flex flex-col h-full w-full overflow-hidden relative">
       <audio ref={audioPlayer} src={sound} />
-      <div className="group relative flex h-full flex-col justify-between">
-        <div
-          className={`mb-3 grow overflow-y-scroll ${
-            fullscreen ? "scrollbar-hide" : "scrollbar-default"
-          }`}
-        >
-          <div className={`flex  flex-col gap-2`}>
-            {chats.map((chat) => (
-              <ChatBubble key={chat.id} chat={chat}></ChatBubble>
-            ))}
-            {/* To scroll to last chat */}
-            <div ref={chatContainerEndRef}></div>
-          </div>
+      
+      {/* Chat Header */}
+      {!fullscreen && (
+        <div className="pb-2 mb-2 border-b border-base-300 flex items-center justify-between shrink-0">
+          <span className="font-bold text-sm tracking-tight flex items-center gap-1.5">
+            💬 Live Chat
+          </span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-semibold">
+            Connected
+          </span>
         </div>
+      )}
 
-        <Formik
-          initialValues={{ message: "" }}
-          validationSchema={toFormikValidationSchema(chatSchema)}
-          onSubmit={async (values, { setSubmitting, resetForm }) => {
-            resetForm();
-            setShowEmojis(false);
-            await sendChat(values.message);
-            setSubmitting(false);
-          }}
-        >
-          {({ isSubmitting, errors, setFieldValue, values }) => (
-            <Form
-              className={`flex min-h-fit ${
-                fullscreen
-                  ? "opacity-5 duration-150 focus-within:opacity-60 group-hover:opacity-60"
-                  : ""
-              }`}
-            >
-              <label className="swap-rotate swap btn-square btn mr-3">
-                <input
-                  type="checkbox"
-                  checked={showEmojis}
-                  onChange={() => setShowEmojis(!showEmojis)}
-                />
+      {/* Messages Scroll Area */}
+      <div
+        className={`flex-1 overflow-y-auto mb-3 pr-1 ${
+          fullscreen ? "scrollbar-hide" : "scrollbar-default"
+        }`}
+      >
+        <div className="flex flex-col gap-1">
+          {chats.map((chat, index) => {
+            const prevChat = index > 0 ? chats[index - 1] : null;
+            const isConsecutive = prevChat?.userId === chat.userId;
+            return (
+              <ChatBubble
+                key={chat.id}
+                chat={chat}
+                isConsecutive={isConsecutive}
+              />
+            );
+          })}
+          <div ref={chatContainerEndRef}></div>
+        </div>
+      </div>
 
-                <div className="swap-on">⛔</div>
-                <div className="swap-off">🐥</div>
-              </label>
-              <div
-                onFocus={() => setShowEmojis(false)}
-                className="flex w-full flex-col"
+      {/* Chat Input Area */}
+      <Formik
+        initialValues={{ message: "" }}
+        validationSchema={toFormikValidationSchema(chatSchema)}
+        onSubmit={async (values, { setSubmitting, resetForm }) => {
+          resetForm();
+          setShowEmojis(false);
+          await sendChat(values.message);
+          setSubmitting(false);
+        }}
+      >
+        {({ isSubmitting, errors, setFieldValue, values }) => (
+          <Form
+            className={`flex flex-col gap-2 shrink-0 p-1.5 overflow-visible ${
+              fullscreen
+                ? "opacity-25 focus-within:opacity-100 hover:opacity-100 transition-opacity duration-300"
+                : ""
+            }`}
+          >
+            {/* Quick Reactions Bar */}
+            <div className="flex gap-2.5 px-1 items-center select-none">
+              <span className="text-[10px] uppercase font-bold tracking-wider opacity-50 mr-1">React:</span>
+              {["😂", "😍", "😭", "😡", "✨", "😲"].map((emojiChar) => {
+                const labels = ["haha", "love", "cry", "angry", "starts", "wow"];
+                const idx = ["😂", "😍", "😭", "😡", "✨", "😲"].indexOf(emojiChar);
+                return (
+                  <button
+                    key={emojiChar}
+                    type="button"
+                    onClick={() => {
+                      toast(`${emojiChar} Sent!`, {
+                        duration: 1000,
+                        position: "bottom-center",
+                        style: {
+                          background: darkMode ? "#1e293b" : "#ffffff",
+                          color: darkMode ? "#f8fafc" : "#0f172a",
+                          border: darkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.1)",
+                          borderRadius: "9999px",
+                          padding: "6px 12px",
+                          fontWeight: "bold",
+                        }
+                      });
+                      void setEmoji(labels[idx]!);
+                    }}
+                    className="hover:scale-130 active:scale-90 transition-all text-xl p-0.5"
+                  >
+                    {emojiChar}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Input Row */}
+            <div className="flex items-center gap-2 w-full overflow-visible p-0.5">
+              {/* Emoji Trigger Button */}
+              <button
+                type="button"
+                onClick={() => setShowEmojis(!showEmojis)}
+                className={`btn btn-circle btn-ghost btn-sm md:btn-md transition-transform hover:scale-105 active:scale-95 ${
+                  showEmojis ? "text-error" : "text-primary text-lg"
+                }`}
               >
+                {showEmojis ? "✕" : "🐥"}
+              </button>
+
+              {/* Input Field */}
+              <div className="flex-1" onFocus={() => setShowEmojis(false)}>
                 <Field
-                  className={`input-bordered input w-full rounded-r-none`}
+                  className={`input input-bordered focus:input-primary w-full transition-all duration-200 ${
+                    darkMode 
+                      ? "bg-slate-950/40 border-slate-700/50 text-slate-200" 
+                      : "bg-white border-slate-300 text-slate-900"
+                  }`}
                   type="text"
                   name="message"
-                  placeholder="Message..."
+                  placeholder="Send a message..."
+                  autoComplete="off"
                 />
               </div>
 
+              {/* Send Button */}
               <button
-                className={`btn-secondary btn rounded-l-none ${
-                  isSubmitting ? "loading" : ""
-                }`}
+                className="btn btn-secondary text-slate-950 font-bold shadow-lg glow-secondary hover:scale-[1.02] active:scale-[0.98] transition"
                 type="submit"
                 disabled={isSubmitting || typeof errors.message === "string"}
               >
                 Send
               </button>
-              {
-                <div
-                  className={`absolute left-0 bottom-14 flex origin-bottom-left flex-col gap-3 duration-200 ${
-                    showEmojis ? "scale-100 opacity-100" : "scale-0 opacity-0"
-                  }`}
-                >
-                  <div>
-                    <ReactionBarSelector
-                      style={{
-                        paddingRight: "14px",
-                        width: "100%",
-                        justifyContent: "space-between",
-                        backgroundColor: darkMode ? "#212121" : "#fff",
-                      }}
-                      reactions={[
-                        {
-                          label: "haha",
-                          node: <div>😂</div>,
-                          key: "haha",
-                        },
-                        {
-                          label: "love",
-                          node: <div>😍</div>,
-                          key: "love",
-                        },
-                        {
-                          label: "cry",
-                          node: <div>😭</div>,
-                          key: "cry",
-                        },
-                        {
-                          label: "angry",
-                          node: <div>😡</div>,
-                          key: "angry",
-                        },
-                        {
-                          label: "starts",
-                          node: <div>✨</div>,
-                          key: "starts",
-                        },
-                        {
-                          label: "wow",
-                          node: <div>😲</div>,
-                          key: "wow",
-                        },
-                      ]}
-                      onSelect={(emoji) => {
-                        setShowEmojis(false);
-                        void setEmoji(emoji);
-                      }}
-                    ></ReactionBarSelector>
-                  </div>
-                  <div
-                    className={`h-[450px] max-w-[345px] rounded-lg ${
-                      darkMode ? "bg-[#212121]" : "bg-[#fff]"
-                    }`}
+            </div>
+
+            {/* Slide-Up Emoji Reaction Overlay */}
+            {showEmojis && (
+              <div className={`absolute inset-0 z-30 flex flex-col p-4 animate-fade-in rounded-2xl ${
+                darkMode ? "bg-slate-900/95 border border-slate-800" : "bg-slate-50/95 border border-slate-200"
+              }`}>
+                <div className="flex items-center justify-between mb-3 shrink-0">
+                  <h3 className="font-bold text-sm tracking-tight">Express Yourself</h3>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowEmojis(false)}
+                    className="btn btn-xs btn-circle btn-ghost hover:bg-error/10 hover:text-error"
                   >
-                    {showEmojis && (
-                      <EmojiPicker
-                        theme={darkMode ? Theme.DARK : Theme.LIGHT}
-                        width={"345px"}
-                        onEmojiClick={(emoji) => {
-                          void setFieldValue(
-                            "message",
-                            `${values.message}${emoji.emoji}`
-                          );
-                        }}
-                      />
-                    )}
-                  </div>
+                    ✕
+                  </button>
                 </div>
-              }
-            </Form>
-          )}
-        </Formik>
-      </div>
+                
+                {/* Reactions Row */}
+                <div className={`mb-3 p-2 rounded-xl border shrink-0 ${
+                  darkMode ? "bg-slate-950/40 border-slate-800" : "bg-slate-100 border-slate-200"
+                }`}>
+                  <ReactionBarSelector
+                    style={{
+                      width: "100%",
+                      justifyContent: "space-around",
+                      backgroundColor: "transparent",
+                      boxShadow: "none",
+                      padding: "0px",
+                    }}
+                    reactions={[
+                      {
+                        label: "haha",
+                        node: <div className="text-2xl hover:scale-125 active:scale-95 transition-transform duration-100 cursor-pointer">😂</div>,
+                        key: "haha",
+                      },
+                      {
+                        label: "love",
+                        node: <div className="text-2xl hover:scale-125 active:scale-95 transition-transform duration-100 cursor-pointer">😍</div>,
+                        key: "love",
+                      },
+                      {
+                        label: "cry",
+                        node: <div className="text-2xl hover:scale-125 active:scale-95 transition-transform duration-100 cursor-pointer">😭</div>,
+                        key: "cry",
+                      },
+                      {
+                        label: "angry",
+                        node: <div className="text-2xl hover:scale-125 active:scale-95 transition-transform duration-100 cursor-pointer">😡</div>,
+                        key: "angry",
+                      },
+                      {
+                        label: "starts",
+                        node: <div className="text-2xl hover:scale-125 active:scale-95 transition-transform duration-100 cursor-pointer">✨</div>,
+                        key: "starts",
+                      },
+                      {
+                        label: "wow",
+                        node: <div className="text-2xl hover:scale-125 active:scale-95 transition-transform duration-100 cursor-pointer">😲</div>,
+                        key: "wow",
+                      },
+                    ]}
+                    onSelect={(emoji) => {
+                      setShowEmojis(false);
+                      void setEmoji(emoji);
+                    }}
+                  />
+                </div>
+
+                {/* Full Emoji Picker */}
+                <div className={`grow overflow-hidden rounded-xl border flex flex-col ${
+                  darkMode ? "bg-slate-950 border-slate-800" : "bg-white border-slate-200"
+                }`}>
+                  <EmojiPicker
+                    theme={darkMode ? Theme.DARK : Theme.LIGHT}
+                    width="100%"
+                    height="100%"
+                    skinTonesDisabled
+                    searchDisabled={false}
+                    previewConfig={{ showPreview: false }}
+                    onEmojiClick={(emoji) => {
+                      void setFieldValue(
+                        "message",
+                        `${values.message}${emoji.emoji}`
+                      );
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </Form>
+        )}
+      </Formik>
     </div>
   );
 };

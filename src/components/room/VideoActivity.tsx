@@ -10,6 +10,7 @@ import { defaultDuration } from "../../utils/constants";
 import FallingEmojis from "../DuckiEmojis";
 import { VideoControls } from "./VideoControls";
 import { useWebSocket } from "../../context/WebSocketContext";
+import { toast } from "react-hot-toast";
 
 interface Props {
   room: Rooms & {
@@ -22,7 +23,7 @@ export const VideoActivity: FC<Props> = ({ room }) => {
   /*                                   CONTEXT                                  */
   /* -------------------------------------------------------------------------- */
   const { data: session } = useSession();
-  const { fullscreen } = useAppContext();
+  const { fullscreen, updateFullscreen } = useAppContext();
   const { sendBroadcast, subscribe: subscribeWS } = useWebSocket();
 
   /* -------------------------------------------------------------------------- */
@@ -46,6 +47,36 @@ export const VideoActivity: FC<Props> = ({ room }) => {
 
   const [emoji, setEmoji] = useState<string | null>(null);
   const [showEmojis, setShowEmojis] = useState<boolean>(false);
+  const [copied, setCopied] = useState(false);
+
+  const [showControls, setShowControls] = useState(true);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetControlsTimeout = () => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    if (fullscreen) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+    }
+  };
+
+  useEffect(() => {
+    if (fullscreen) {
+      resetControlsTimeout();
+    } else {
+      setShowControls(true);
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+    }
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    };
+  }, [fullscreen]);
 
   /* -------------------------------------------------------------------------- */
   /*                                  MUTATIONS                                 */
@@ -168,13 +199,61 @@ export const VideoActivity: FC<Props> = ({ room }) => {
     }, 3000);
   }
 
+  function copyRoomCode() {
+    if (typeof window !== "undefined") {
+      const inviteUrl = `${window.location.origin}/rooms/${room.id}`;
+      navigator.clipboard
+        .writeText(inviteUrl)
+        .then(() => {
+          setCopied(true);
+          toast.success("Invite link copied to clipboard!");
+          setTimeout(() => setCopied(false), 2000);
+        })
+        .catch(() => {
+          toast.error("Failed to copy link");
+        });
+    }
+  }
+
   return (
-    <div className="relative flex aspect-video h-full w-[-webkit-fill-available] grow flex-col gap-3">
+    <div 
+      onMouseMove={resetControlsTimeout}
+      onTouchStart={resetControlsTimeout}
+      className="relative flex flex-1 min-h-0 w-full flex-col gap-3"
+    >
+      {!fullscreen && (
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-base-300">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl animate-float">🎬</span>
+            <div className="max-w-[200px] sm:max-w-[300px] md:max-w-[450px]">
+              <h2 className="font-black text-base md:text-lg tracking-tight truncate">
+                Watch Party Lobby
+              </h2>
+              <p className="text-xs opacity-60 truncate">
+                {videoActivity.url || "No video URL loaded"}
+              </p>
+            </div>
+          </div>
+
+          <div
+            onClick={copyRoomCode}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 text-primary border border-primary/20 cursor-pointer active:scale-95 transition-all select-none font-bold text-xs shadow-sm hover:bg-primary/20"
+            title="Click to copy invite link"
+          >
+            <span>🔑 ROOM:</span>
+            <span className="font-mono text-sm tracking-wider bg-slate-900/60 text-slate-100 px-2 py-0.5 rounded border border-slate-700/50">
+              {room.id}
+            </span>
+            <span className="opacity-75">{copied ? "✓ Copied!" : "📋 Copy Invite Link"}</span>
+          </div>
+        </div>
+      )}
+
       <div
         onClick={() => (videoActivity.isPlaying ? void pause() : void play())}
-        className={`relative !aspect-video h-fit min-h-[10rem] max-w-fit grow overflow-clip rounded-lg bg-base-200 hover:cursor-pointer ${
+        className={`relative w-full aspect-video lg:aspect-auto lg:flex-1 min-h-0 overflow-clip rounded-xl bg-black hover:cursor-pointer ${
           duration === defaultDuration ? "animate-pulse" : ""
-        } ${fullscreen ? "mx-auto w-screen bg-black" : ""}`}
+        } ${fullscreen ? "w-full h-full lg:flex-1 rounded-none border-none shadow-none" : ""}`}
       >
         <ReactPlayer
           ref={playerRef}
@@ -229,12 +308,15 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           </div>
         )}
       </div>
-      <div
-        className={`max-w-full rounded-lg bg-base-200 p-4 ${
-          fullscreen
-            ? "absolute bottom-3 left-3 right-3 z-20 opacity-0 duration-200 hover:opacity-90"
-            : ""
-        }`}
+      <div 
+        onMouseEnter={() => {
+          if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+          setShowControls(true);
+        }}
+        onMouseLeave={resetControlsTimeout}
+        className={`max-w-full rounded-xl bg-base-200 p-3 md:p-4 border border-base-300 shadow-inner transition-all duration-500 ${
+          fullscreen ? "absolute bottom-6 left-6 right-6 z-40 shadow-2xl bg-slate-900/80 border-slate-700/50 backdrop-blur-md" : ""
+        } ${fullscreen && !showControls ? "opacity-0 translate-y-4 pointer-events-none" : "opacity-100 translate-y-0"}`}
       >
         <VideoControls
           videoActivity={videoActivity}
@@ -244,6 +326,8 @@ export const VideoActivity: FC<Props> = ({ room }) => {
           isPip={isPip}
           muted={muted}
           onMuteToggle={() => setMuted(!muted)}
+          fullscreen={!!fullscreen}
+          onFullscreenToggle={() => updateFullscreen(!fullscreen)}
           onVideoActivitiesChange={(newVideoActivity) =>
             setVideoActivity(newVideoActivity)
           }

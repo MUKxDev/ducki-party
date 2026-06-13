@@ -103,6 +103,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, ch
   }, [roomId]);
 
   const sendBroadcast = (event: string, payload: any) => {
+    // Trigger local subscribers in the same client for immediate feedback
+    const callbacks = listenersRef.current.get(event);
+    if (callbacks) {
+      callbacks.forEach((cb) => cb(payload));
+    }
+
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({

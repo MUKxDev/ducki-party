@@ -8,9 +8,7 @@ import { toFormikValidationSchema } from "zod-formik-adapter";
 import { useAppContext } from "../context/AppContext";
 import type { RoomWithVideoActivity } from "../pages/rooms/[id]";
 import { api } from "../utils/api";
-import Maximize from "../../public/icons/maximize.svg";
-import Minimize from "../../public/icons/minimize.svg";
-import Globe from "../../public/icons/globe.svg";
+import { Maximize2, Minimize2, Globe, Sun, Moon } from "lucide-react";
 import { useOptionalWebSocket } from "../context/WebSocketContext";
 
 interface Props {
@@ -19,7 +17,7 @@ interface Props {
 }
 
 const urlSchema = z.object({
-  url: z.string(),
+  url: z.string().url("Must be a valid URL"),
 });
 
 export const Layout: FC<PropsWithChildren<Props>> = ({
@@ -47,106 +45,109 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
   }
 
   return (
-    <div className="relative flex h-screen w-full flex-col items-center justify-center ">
+    <div className={`relative flex min-h-screen w-full flex-col items-center justify-start overflow-x-hidden ${
+      darkMode ? "bg-cosmic-grid text-slate-100" : "bg-cosmic-grid-light text-slate-900"
+    }`}>
+      {/* Floating Header */}
       <div
-        className={`w-full p-3 ${
+        className={`w-full px-4 pt-4 transition-all duration-300 ${
           fullscreen
-            ? "absolute top-0 z-20 opacity-0 duration-150 hover:opacity-90"
-            : ""
+            ? "absolute top-0 left-0 right-0 z-40 opacity-0 hover:opacity-100"
+            : "relative"
         }`}
       >
-        <div className="navbar rounded-xl bg-base-300">
+        <div className={`navbar rounded-2xl shadow-xl transition-all border ${
+          darkMode ? "glass-panel text-slate-100" : "glass-panel-light text-slate-900"
+        }`}>
+          {/* Brand/Logo */}
           <div className="flex-1">
-            <Link href={"/"} className="btn-ghost btn text-xl normal-case">
-              Ducki Party
+            <Link href={"/"} className="btn btn-ghost normal-case text-xl font-black gap-2 hover:bg-transparent hover:scale-105 active:scale-95 transition-all">
+              <span className="text-2xl animate-float">🐥</span>
+              <span className="bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                Ducki Party
+              </span>
             </Link>
           </div>
-          <div className="flex gap-3">
-            <div className="tooltip tooltip-bottom" data-tip="Fullscreen">
-              <label className="swap-rotate swap btn-ghost btn-circle btn ">
+
+          {/* Nav Controls */}
+          <div className="flex items-center gap-2 pr-1">
+            {/* Fullscreen Toggle */}
+            <div className="hidden md:inline-block tooltip tooltip-bottom" data-tip="Toggle Fullscreen">
+              <label className="btn btn-ghost btn-circle hover:bg-slate-700/10 dark:hover:bg-slate-300/10 transition-all">
                 <input
                   type="checkbox"
                   title="fullscreen"
                   name="fullscreen"
                   id="fullscreen"
+                  className="hidden"
                   checked={!fullscreen}
                   onChange={() => void updateFullscreen(!fullscreen)}
                 />
-
-                <Minimize className="swap-off fill-current"></Minimize>
-                <Maximize className="swap-on fill-current"></Maximize>
+                {fullscreen ? (
+                  <Minimize2 className="h-5 w-5" />
+                ) : (
+                  <Maximize2 className="h-5 w-5" />
+                )}
               </label>
             </div>
 
+            {/* Room Settings URL Trigger */}
             {room && room.type == "VIDEO" && (
-              <div className="tooltip tooltip-bottom" data-tip="URL">
+              <div className="tooltip tooltip-bottom" data-tip="Change Video URL">
                 <label
                   htmlFor="my-modal-4"
-                  className="btn-ghost btn-circle btn"
+                  className="btn btn-ghost btn-circle hover:bg-slate-700/10 dark:hover:bg-slate-300/10 cursor-pointer transition-all"
                 >
-                  <Globe></Globe>
+                  <Globe className="h-5 w-5" />
                 </label>
               </div>
             )}
+
+            {/* Dark Mode Toggle */}
             {!fullscreen && (
-              <div className="tooltip tooltip-bottom" data-tip="Dark/Light">
-                <label className="swap-rotate swap btn-ghost btn-circle btn ">
-                  <input
-                    type="checkbox"
-                    title="darkMode"
-                    name="darkMode"
-                    id="darkMode"
-                    checked={!darkMode}
-                    onChange={() => updateDarkMode(!darkMode)}
-                  />
-
-                  <svg
-                    className="swap-on h-6 w-6 fill-current"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z" />
-                  </svg>
-
-                  <svg
-                    className="swap-off h-6 w-6 fill-current"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
-                  </svg>
-                </label>
+              <div className="tooltip tooltip-bottom" data-tip={darkMode ? "Switch to Light" : "Switch to Dark"}>
+                <button
+                  type="button"
+                  onClick={() => updateDarkMode(!darkMode)}
+                  className="btn btn-ghost btn-circle hover:bg-slate-700/10 dark:hover:bg-slate-300/10 transition-all"
+                >
+                  {darkMode ? "☀️" : "🌙"}
+                </button>
               </div>
             )}
 
-            <div className="dropdown-end dropdown">
-              <label tabIndex={0} className="btn-ghost btn-circle avatar btn">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  className="inline-block h-5 w-5 stroke-current"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
-                  ></path>
-                </svg>
+            {/* User Dropdown */}
+            <div className="dropdown dropdown-end">
+              <label tabIndex={0} className="btn btn-ghost btn-circle avatar hover:scale-105 active:scale-95 transition-all focus:outline-none">
+                <div className="w-9 h-9 rounded-full ring-2 ring-primary/40 hover:ring-primary/70 ring-offset-2 ring-offset-base-100 overflow-hidden shadow-lg transition-all duration-300 flex items-center justify-center">
+                  {user.image ? (
+                    <img src={user.image} alt={user.name ?? "User"} referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center font-black text-slate-950 text-sm tracking-wider">
+                      {user.name ? user.name[0]?.toUpperCase() : "🐥"}
+                    </div>
+                  )}
+                </div>
               </label>
               <ul
                 tabIndex={0}
-                className="dropdown-content menu rounded-box menu-compact mt-3 w-52 bg-primary p-2 text-primary-content shadow"
+                className={`dropdown-content menu menu-sm rounded-xl mt-3 w-52 p-2 shadow-2xl border z-50 ${
+                  darkMode 
+                    ? "bg-slate-900 border-slate-800 text-slate-200" 
+                    : "bg-white border-slate-200 text-slate-800"
+                }`}
               >
-                <li>
-                  <p>{user.name}</p>
+                <li className="menu-title font-bold px-3 py-1 text-xs opacity-60">Signed in as</li>
+                <li className="px-3 py-1 font-semibold text-sm truncate max-w-full text-primary">
+                  {user.name}
                 </li>
+                <div className="h-px bg-slate-700/10 dark:bg-slate-300/10 my-1"></div>
                 <li>
-                  <a>Settings</a>
-                </li>
-                <li>
-                  <button type="button" onClick={() => void signOut()}>
+                  <button 
+                    type="button" 
+                    onClick={() => void signOut()}
+                    className="hover:bg-error/10 hover:text-error transition"
+                  >
                     Logout
                   </button>
                 </li>
@@ -155,17 +156,25 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
           </div>
         </div>
       </div>
-      {
-        <div className="flex w-full grow flex-col justify-center overflow-y-hidden">
-          {children}
-        </div>
-      }
 
-      {/* UPDATE URL */}
+      {/* Main Content Area */}
+      <div className={`flex w-full grow flex-col justify-start overflow-y-auto ${
+        fullscreen ? "p-0" : "p-4"
+      }`}>
+        {children}
+      </div>
+
+      {/* UPDATE URL MODAL */}
       <input type="checkbox" id="my-modal-4" className="modal-toggle" />
-      <label htmlFor="my-modal-4" className="modal cursor-pointer">
-        <label className="modal-box relative" htmlFor="">
-          <h3 className="text-lg font-bold">Update the URL of the video!</h3>
+      <label htmlFor="my-modal-4" className="modal cursor-pointer backdrop-blur-sm bg-black/40">
+        <label className={`modal-box relative border shadow-2xl ${
+          darkMode ? "glass-panel text-slate-100" : "glass-panel-light text-slate-900"
+        }`} htmlFor="">
+          <h3 className="text-xl font-black tracking-tight mb-2">Update Video URL</h3>
+          <p className="text-sm opacity-75 mb-4">
+            Change the current video source for everyone in the room. Real-time synchronization is preserved.
+          </p>
+
           <Formik
             initialValues={{ url: "" }}
             validationSchema={toFormikValidationSchema(urlSchema)}
@@ -176,26 +185,42 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
             }}
           >
             {({ isSubmitting, errors }) => (
-              <Form className="mt-3 flex min-h-fit">
-                <div className="flex w-full flex-col">
+              <Form className="flex flex-col gap-3">
+                <div className="form-control w-full">
                   <Field
-                    className={`input-bordered input w-full rounded-r-none`}
+                    className={`input input-bordered focus:input-primary transition-all duration-200 ${
+                      darkMode 
+                        ? "bg-slate-950/40 border-slate-700/50 text-slate-200" 
+                        : "bg-white border-slate-300 text-slate-900"
+                    } ${errors.url ? "input-error" : ""}`}
                     type="text"
                     name="url"
-                    placeholder="URL..."
-                    autofocus
+                    placeholder="https://example.com/movie.mp4"
+                    autoFocus
                   />
+                  {errors.url && (
+                    <label className="label-text-alt text-error mt-1.5 pl-1 font-semibold">
+                      {errors.url as string}
+                    </label>
+                  )}
                 </div>
 
-                <button
-                  className={`btn-primary btn rounded-l-none ${
-                    isSubmitting ? "loading" : ""
-                  }`}
-                  type="submit"
-                  disabled={isSubmitting || typeof errors.url === "string"}
-                >
-                  Update
-                </button>
+                <div className="modal-action mt-4 gap-2">
+                  <label htmlFor="my-modal-4" className="btn btn-ghost hover:bg-slate-700/10 dark:hover:bg-slate-300/10">
+                    Cancel
+                  </label>
+                  <button
+                    className="btn btn-primary text-slate-950 font-bold shadow-lg glow-primary hover:scale-[1.01] active:scale-[0.99] transition"
+                    type="submit"
+                    disabled={isSubmitting || typeof errors.url === "string"}
+                  >
+                    {isSubmitting ? (
+                      <span className="loading loading-spinner"></span>
+                    ) : (
+                      "Update Video"
+                    )}
+                  </button>
+                </div>
               </Form>
             )}
           </Formik>

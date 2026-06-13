@@ -30,26 +30,27 @@ const RoomPage: NextPage = () => {
         title={`Ducki Party`}
         room={
           roomQuery.data &&
-          roomQuery.data.videoActivity !== null &&
-          roomQuery.data.type === "VIDEO"
+            roomQuery.data.videoActivity !== null &&
+            roomQuery.data.type === "VIDEO"
             ? (roomQuery.data as RoomWithVideoActivity)
             : undefined
         }
       >
         {roomQuery.isInitialLoading ? (
-          <progress className="progress mx-auto w-56"></progress>
+          <div className="flex h-[50vh] w-full items-center justify-center">
+            <span className="loading loading-ring loading-lg text-primary scale-150"></span>
+          </div>
         ) : roomQuery.data ? (
           <div
-            className={`flex max-h-full grow grid-cols-7 flex-col gap-3 p-3 lg:grid ${
-              fullscreen ? "!p-0" : ""
-            }`}
-          >
-            <div
-              className={`col-span-7 h-full  resize-y  overflow-hidden text-ellipsis rounded-xl bg-base-300 p-3 md:h-full lg:col-span-5 ${
-                fullscreen
-                  ? "absolute top-0 bottom-0 left-0 right-0 col-span-7 bg-black p-0"
-                  : ""
+            className={`flex flex-col gap-4 p-0 lg:grid lg:grid-cols-7 h-auto lg:h-[calc(100vh-7rem)] transition-all ${fullscreen ? "!p-0 !h-screen !w-screen fixed inset-0 z-30 bg-black overflow-hidden" : ""
               }`}
+          >
+            {/* Video Player Container */}
+            <div
+              className={`col-span-7 lg:col-span-5 flex flex-col h-fit lg:h-full overflow-hidden transition-all duration-300 border ${fullscreen
+                  ? "bg-black p-0 rounded-none border-none shadow-none"
+                  : "bg-base-200 border-base-300 rounded-2xl p-3 md:p-4 shadow-xl"
+                }`}
             >
               {roomQuery.data.videoActivity !== null &&
                 roomQuery.data.type === "VIDEO" && (
@@ -59,19 +60,19 @@ const RoomPage: NextPage = () => {
                 )}
             </div>
 
+            {/* Chat Container */}
             <div
-              className={`col-span-7 min-h-[30%] grow rounded-xl bg-base-300 p-3 lg:col-span-2 ${
-                fullscreen
-                  ? "absolute bottom-20 right-0 z-10 h-60 bg-transparent "
-                  : ""
-              }`}
+              className={`col-span-7 lg:col-span-2 flex flex-col transition-all duration-300 border ${fullscreen
+                  ? "bg-slate-950/90 border-t lg:border-t-0 lg:border-l border-slate-800 rounded-none p-4 h-full flex-1 min-h-0 overflow-hidden"
+                  : "bg-base-200 border-base-300 rounded-2xl shadow-xl p-4 h-[400px] lg:h-full overflow-hidden"
+                }`}
             >
               <Chat room={roomQuery.data} />
             </div>
           </div>
         ) : (
-          <div className="flex h-56 w-full items-center justify-center font-semibold text-error">
-            Room has not been found
+          <div className="flex h-56 w-full items-center justify-center font-bold text-lg text-error">
+            ⚠️ Room has not been found or was closed.
           </div>
         )}
       </PageComponent>

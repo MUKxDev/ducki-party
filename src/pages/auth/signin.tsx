@@ -3,10 +3,12 @@ import type { NextPage } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
+import { useAppContext } from "../../context/AppContext";
 
 const SignInPage: NextPage = () => {
   const router = useRouter();
+  const { darkMode, updateDarkMode } = useAppContext();
   const [isRegister, setIsRegister] = useState(false);
   
   // Form States
@@ -44,7 +46,7 @@ const SignInPage: NextPage = () => {
           throw new Error(data.message || "Registration failed");
         }
 
-        toast.success("Account created successfully! Logging in...");
+        toast.success("Account created! Logging in...");
         
         // Auto sign in after registration
         const result = await signIn("credentials", {
@@ -76,7 +78,7 @@ const SignInPage: NextPage = () => {
         if (result?.error) {
           toast.error(result.error || "Invalid username or password");
         } else {
-          toast.success("Logged in successfully!");
+          toast.success("Welcome to the party!");
           void router.push("/");
         }
       } catch (err) {
@@ -92,30 +94,49 @@ const SignInPage: NextPage = () => {
       <Head>
         <title>{isRegister ? "Register - Ducki Party" : "Sign In - Ducki Party"}</title>
       </Head>
-      <Toaster />
       <div 
-        className="flex min-h-screen items-center justify-center p-4"
-        style={{
-          background: "radial-gradient(circle at center, #1e293b 0%, #0f172a 100%)",
-        }}
+        className={`relative flex min-h-screen items-center justify-center p-4 transition-colors duration-300 ${
+          darkMode ? "bg-cosmic-grid text-slate-100" : "bg-cosmic-grid-light text-slate-900"
+        }`}
+        data-theme={darkMode ? "ducki-dark" : "ducki-light"}
       >
-        <div className="card w-full max-w-md bg-slate-900/60 shadow-2xl backdrop-blur-md border border-slate-700/30">
+        {/* Floating Theme Switcher */}
+        <div className="absolute top-4 right-4 z-50">
+          <button
+            type="button"
+            onClick={() => updateDarkMode(!darkMode)}
+            className={`btn btn-circle btn-ghost ${darkMode ? "text-yellow-400" : "text-amber-600"}`}
+            title="Toggle Theme"
+          >
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+        </div>
+
+        <div className={`card w-full max-w-md shadow-2xl border transition-all duration-300 hover:shadow-yellow-500/5 ${
+          darkMode ? "glass-panel text-slate-100" : "glass-panel-light text-slate-900"
+        }`}>
           <div className="card-body gap-6 p-8">
             <div className="flex flex-col items-center text-center">
-              <span className="text-6xl mb-2 animate-bounce">🐥</span>
+              <span className="text-6xl mb-2 animate-float inline-block">🐥</span>
               <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 bg-clip-text text-transparent">
                 Ducki Party
               </h1>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className={`text-sm mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                 {isRegister ? "Join the party & hang out together" : "Sign in to join the lobby"}
               </p>
             </div>
 
             {/* Tab Selection */}
-            <div className="tabs tabs-boxed justify-center bg-slate-800/40 p-1 border border-slate-700/20">
+            <div className={`tabs tabs-boxed justify-center p-1 border ${
+              darkMode ? "bg-slate-950/40 border-slate-800" : "bg-slate-100 border-slate-200"
+            }`}>
               <button 
                 type="button"
-                className={`tab tab-lg rounded-lg transition-all duration-200 ${!isRegister ? "tab-active bg-yellow-500 text-slate-900 font-bold" : "text-slate-400"}`}
+                className={`tab tab-lg grow rounded-lg transition-all duration-200 ${
+                  !isRegister 
+                    ? "tab-active bg-primary text-slate-950 font-bold glow-primary" 
+                    : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-800"
+                }`}
                 onClick={() => {
                   setIsRegister(false);
                   setUsername("");
@@ -126,7 +147,11 @@ const SignInPage: NextPage = () => {
               </button>
               <button 
                 type="button"
-                className={`tab tab-lg rounded-lg transition-all duration-200 ${isRegister ? "tab-active bg-yellow-500 text-slate-900 font-bold" : "text-slate-400"}`}
+                className={`tab tab-lg grow rounded-lg transition-all duration-200 ${
+                  isRegister 
+                    ? "tab-active bg-primary text-slate-950 font-bold glow-primary" 
+                    : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-800"
+                }`}
                 onClick={() => {
                   setIsRegister(true);
                   setUsername("");
@@ -141,12 +166,16 @@ const SignInPage: NextPage = () => {
             <form onSubmit={(e) => { void handleSubmit(e); }} className="flex flex-col gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-semibold text-slate-300">Username</span>
+                  <span className={`label-text font-semibold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Username</span>
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. ducki_lover"
-                  className="input input-bordered focus:input-warning bg-slate-950/40 border-slate-700/50 text-slate-200 transition-all"
+                  className={`input input-bordered focus:input-primary transition-all duration-200 ${
+                    darkMode 
+                      ? "bg-slate-950/40 border-slate-700/50 text-slate-200" 
+                      : "bg-white border-slate-300 text-slate-900"
+                  }`}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
@@ -156,12 +185,16 @@ const SignInPage: NextPage = () => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-semibold text-slate-300">Password</span>
+                  <span className={`label-text font-semibold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Password</span>
                 </label>
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className="input input-bordered focus:input-warning bg-slate-950/40 border-slate-700/50 text-slate-200 transition-all"
+                  className={`input input-bordered focus:input-primary transition-all duration-200 ${
+                    darkMode 
+                      ? "bg-slate-950/40 border-slate-700/50 text-slate-200" 
+                      : "bg-white border-slate-300 text-slate-900"
+                  }`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
@@ -172,12 +205,16 @@ const SignInPage: NextPage = () => {
               {isRegister && (
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-semibold text-slate-300">Confirm Password</span>
+                    <span className={`label-text font-semibold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Confirm Password</span>
                   </label>
                   <input
                     type="password"
                     placeholder="••••••••"
-                    className="input input-bordered focus:input-warning bg-slate-950/40 border-slate-700/50 text-slate-200 transition-all"
+                    className={`input input-bordered focus:input-primary transition-all duration-200 ${
+                      darkMode 
+                        ? "bg-slate-950/40 border-slate-700/50 text-slate-200" 
+                        : "bg-white border-slate-300 text-slate-900"
+                    }`}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={loading}
@@ -188,7 +225,9 @@ const SignInPage: NextPage = () => {
 
               <button
                 type="submit"
-                className={`btn btn-warning mt-4 text-slate-900 font-bold ${loading ? "loading" : ""}`}
+                className={`btn btn-primary mt-4 text-slate-950 font-bold shadow-lg glow-primary hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ${
+                  loading ? "loading" : ""
+                }`}
                 disabled={loading}
               >
                 {isRegister ? "Create Account" : "Let's Go!"}
