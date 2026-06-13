@@ -30,20 +30,17 @@ export const ChatBubble: FC<Props> = ({ chat, isConsecutive }) => {
   return (
     <div className={`px-1 ${isConsecutive ? "py-0" : "py-0.5"}`}>
       <div
-        className={`chat transition-all duration-300 ${
-          isMe ? "chat-end" : "chat-start"
-        } ${
-          fullscreen
-            ? `hover:opacity-100 ${
-                showChatFullscreen ? "opacity-90" : "opacity-10"
-              }`
+        className={`chat transition-all duration-300 ${isMe ? "chat-end" : "chat-start"
+          } ${fullscreen
+            ? `hover:opacity-100 ${showChatFullscreen ? "opacity-90" : "opacity-10"
+            }`
             : "opacity-100"
-        } ${isConsecutive ? "gap-y-0.5" : ""}`}
+          } ${isConsecutive ? "gap-y-0.5" : ""}`}
       >
         {/* Chat Avatar / Spacer */}
         <div className="chat-image avatar">
           {!isConsecutive ? (
-            <div className="w-7 h-7 rounded-full ring-1 ring-primary/20 overflow-hidden shadow-sm flex items-center justify-center bg-gradient-to-br from-yellow-400 to-amber-600 font-black text-slate-950 text-[10px]">
+            <div className="w-7 h-7 rounded-full ring-1 ring-primary/20 overflow-hidden shadow-sm flex items-center justify-center bg-gradient-to-br from-yellow-400 to-amber-600 font-black text-slate-950 text-[10px] text-center leading-7">
               {chat.user.image ? (
                 <img src={chat.user.image} alt={chat.user.name || "User"} referrerPolicy="no-referrer" />
               ) : (
@@ -63,13 +60,12 @@ export const ChatBubble: FC<Props> = ({ chat, isConsecutive }) => {
         )}
         {/* Chat Bubble */}
         <div
-          className={`chat-bubble text-sm py-2 px-3.5 min-h-fit shadow-sm rounded-2xl ${
-            isMe
-              ? "chat-bubble-primary text-slate-950 font-semibold rounded-tr-none glow-primary"
-              : darkMode
-                ? "bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700/30"
-                : "bg-slate-200 text-slate-900 rounded-tl-none border border-slate-300"
-          }`}
+          className={`chat-bubble text-sm py-2 px-3.5 min-h-fit shadow-sm rounded-2xl ${isMe
+            ? "chat-bubble-primary text-slate-950 font-semibold rounded-tr-none glow-primary"
+            : darkMode
+              ? "bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700/30"
+              : "bg-slate-200 text-slate-900 rounded-tl-none border border-slate-300"
+            }`}
         >
           {chat.message}
         </div>

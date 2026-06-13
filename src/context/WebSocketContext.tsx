@@ -1,10 +1,16 @@
 /* eslint-disable */
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 
+export interface PresenceUser {
+  id: string;
+  name: string;
+}
+
 interface WebSocketContextType {
   sendBroadcast: (event: string, payload: any) => void;
   subscribe: (event: string, callback: (payload: any) => void) => () => void;
   isConnected: boolean;
+  connectedUsers: PresenceUser[];
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -23,11 +29,14 @@ export const useOptionalWebSocket = () => {
 
 interface WebSocketProviderProps {
   roomId: string;
+  userId?: string;
+  userName?: string;
   children: React.ReactNode;
 }
 
-export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, children }) => {
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, userId, userName, children }) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [connectedUsers, setConnectedUsers] = useState<PresenceUser[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const listenersRef = useRef<Map<string, Set<(payload: any) => void>>>(new Map());
 
@@ -59,14 +68,24 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, ch
       ws.onopen = () => {
         console.log("WebSocket connected successfully!");
         setIsConnected(true);
-        // Join the current room
-        ws.send(JSON.stringify({ type: "join", roomId }));
+        // Join the current room with user info
+        ws.send(JSON.stringify({ type: "join", roomId, userId, userName }));
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           const { event: eventName, payload } = data;
+
+          // Handle presence updates internally
+          if (eventName === "PRESENCE_UPDATE") {
+            const users = (payload as { users: PresenceUser[] })?.users;
+            if (users) {
+              setConnectedUsers(users);
+            }
+            return;
+          }
+
           if (eventName) {
             const callbacks = listenersRef.current.get(eventName);
             if (callbacks) {
@@ -100,7 +119,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, ch
         wsRef.current.close();
       }
     };
-  }, [roomId]);
+  }, [roomId, userId, userName]);
 
   const sendBroadcast = (event: string, payload: any) => {
     // Trigger local subscribers in the same client for immediate feedback
@@ -141,7 +160,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ roomId, ch
   };
 
   return (
-    <WebSocketContext.Provider value={{ sendBroadcast, subscribe, isConnected }}>
+    <WebSocketContext.Provider value={{ sendBroadcast, subscribe, isConnected, connectedUsers }}>
       {children}
     </WebSocketContext.Provider>
   );

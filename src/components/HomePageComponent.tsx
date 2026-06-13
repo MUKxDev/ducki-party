@@ -177,6 +177,36 @@ export default function HomePageComponent() {
           </div>
         </div>
       </div>
+
+      {/* Extension Promotion Card */}
+      <div className={`card shadow-xl border mt-8 transition-all duration-300 ${
+        darkMode 
+          ? "glass-panel hover:shadow-primary/5 text-slate-100" 
+          : "glass-panel-light hover:shadow-primary/5 text-slate-900"
+      }`}>
+        <div className="card-body p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-3xl">🔌</span>
+              <h2 className="card-title text-xl font-bold">Need help grabbing video URLs?</h2>
+            </div>
+            <p className="text-sm opacity-80 mb-2">
+              To watch videos together, you need their direct streaming URLs (.mp4, .m3u8, etc.). 
+            </p>
+            <p className="text-xs opacity-60">
+              We recommend installing the <strong>FetchV Video Downloader</strong> Chrome extension. Open any website with a video, open the extension to let it detect the video source, copy the URL, and paste it here to watch together!
+            </p>
+          </div>
+          <a
+            href="https://chromewebstore.google.com/detail/fetchv-video-downloader-f/nfmmmhanepmpifddlkkmihkalkoekpfd?hl=en-US&utm_source=ext_sidebar"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary text-slate-950 font-bold shrink-0 shadow-lg glow-primary px-6 hover:scale-105 active:scale-95 transition-all duration-200"
+          >
+            Get Extension ⚡
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

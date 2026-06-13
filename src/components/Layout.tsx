@@ -45,20 +45,17 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
   }
 
   return (
-    <div className={`relative flex min-h-screen w-full flex-col items-center justify-start overflow-x-hidden ${
-      darkMode ? "bg-cosmic-grid text-slate-100" : "bg-cosmic-grid-light text-slate-900"
-    }`}>
+    <div className={`relative flex min-h-screen w-full flex-col items-center justify-start overflow-x-hidden ${darkMode ? "bg-cosmic-grid text-slate-100" : "bg-cosmic-grid-light text-slate-900"
+      }`}>
       {/* Floating Header */}
       <div
-        className={`w-full px-4 pt-4 transition-all duration-300 ${
-          fullscreen
-            ? "absolute top-0 left-0 right-0 z-40 opacity-0 hover:opacity-100"
-            : "relative"
-        }`}
+        className={`w-full px-4 pt-4 transition-all duration-300 ${fullscreen
+          ? "absolute top-0 left-0 right-0 z-40 opacity-0 hover:opacity-100"
+          : "relative"
+          }`}
       >
-        <div className={`navbar rounded-2xl shadow-xl transition-all border ${
-          darkMode ? "glass-panel text-slate-100" : "glass-panel-light text-slate-900"
-        }`}>
+        <div className={`navbar rounded-2xl shadow-xl transition-all border ${darkMode ? "glass-panel text-slate-100" : "glass-panel-light text-slate-900"
+          }`}>
           {/* Brand/Logo */}
           <div className="flex-1">
             <Link href={"/"} className="btn btn-ghost normal-case text-xl font-black gap-2 hover:bg-transparent hover:scale-105 active:scale-95 transition-all">
@@ -131,11 +128,10 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
               </label>
               <ul
                 tabIndex={0}
-                className={`dropdown-content menu menu-sm rounded-xl mt-3 w-52 p-2 shadow-2xl border z-50 ${
-                  darkMode 
-                    ? "bg-slate-900 border-slate-800 text-slate-200" 
-                    : "bg-white border-slate-200 text-slate-800"
-                }`}
+                className={`dropdown-content menu menu-sm rounded-xl mt-3 w-52 p-2 shadow-2xl border z-50 ${darkMode
+                  ? "bg-slate-900 border-slate-800 text-slate-200"
+                  : "bg-white border-slate-200 text-slate-800"
+                  }`}
               >
                 <li className="menu-title font-bold px-3 py-1 text-xs opacity-60">Signed in as</li>
                 <li className="px-3 py-1 font-semibold text-sm truncate max-w-full text-primary">
@@ -143,8 +139,8 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
                 </li>
                 <div className="h-px bg-slate-700/10 dark:bg-slate-300/10 my-1"></div>
                 <li>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => void signOut()}
                     className="hover:bg-error/10 hover:text-error transition"
                   >
@@ -158,22 +154,39 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
       </div>
 
       {/* Main Content Area */}
-      <div className={`flex w-full grow flex-col justify-start overflow-y-auto ${
-        fullscreen ? "p-0" : "p-4"
-      }`}>
+      <div className={`flex w-full grow flex-col justify-start overflow-y-auto ${fullscreen ? "p-0" : "p-4"
+        }`}>
         {children}
       </div>
 
       {/* UPDATE URL MODAL */}
       <input type="checkbox" id="my-modal-4" className="modal-toggle" />
       <label htmlFor="my-modal-4" className="modal cursor-pointer backdrop-blur-sm bg-black/40">
-        <label className={`modal-box relative border shadow-2xl ${
-          darkMode ? "glass-panel text-slate-100" : "glass-panel-light text-slate-900"
-        }`} htmlFor="">
-          <h3 className="text-xl font-black tracking-tight mb-2">Update Video URL</h3>
-          <p className="text-sm opacity-75 mb-4">
-            Change the current video source for everyone in the room. Real-time synchronization is preserved.
-          </p>
+        <label className={`modal-box relative border  shadow-2xl ${darkMode ? "glass-panel text-slate-100" : "glass-panel-light text-slate-900"
+          }`} htmlFor="">
+          <div className="flex flex-col mb-3 items-center justify-between gap-3 p-3 rounded-xl bg-base-300/40 border border-base-300 text-xs shadow-inner">
+            <div className="flex items-center gap-2.5">
+              <span className="text-lg">💡</span>
+              <div>
+                <span className="font-bold">Pro-Tip:</span> Paste direct video stream links (.mp4, .m3u8). Use the <strong className="text-primary">FetchV Downloader</strong> Chrome extension to extract URLs from any streaming site.
+              </div>
+            </div>
+            <a
+              href="https://chromewebstore.google.com/detail/fetchv-video-downloader-f/nfmmmhanepmpifddlkkmihkalkoekpfd?hl=en-US&utm_source=ext_sidebar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-xs btn-primary text-slate-950 font-bold hover:scale-105 transition-all shrink-0"
+            >
+              Get Extension 🔌
+            </a>
+          </div>
+          <div>
+            <h3 className="text-xl font-black tracking-tight mb-2">Update Video URL</h3>
+            <p className="text-sm opacity-75 mb-4">
+              Change the current video source for everyone in the room. Real-time synchronization is preserved.
+            </p>
+          </div>
+
 
           <Formik
             initialValues={{ url: "" }}
@@ -186,13 +199,13 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
           >
             {({ isSubmitting, errors }) => (
               <Form className="flex flex-col gap-3">
+
                 <div className="form-control w-full">
                   <Field
-                    className={`input input-bordered focus:input-primary transition-all duration-200 ${
-                      darkMode 
-                        ? "bg-slate-950/40 border-slate-700/50 text-slate-200" 
-                        : "bg-white border-slate-300 text-slate-900"
-                    } ${errors.url ? "input-error" : ""}`}
+                    className={`input input-bordered focus:input-primary transition-all duration-200 ${darkMode
+                      ? "bg-slate-950/40 border-slate-700/50 text-slate-200"
+                      : "bg-white border-slate-300 text-slate-900"
+                      } ${errors.url ? "input-error" : ""}`}
                     type="text"
                     name="url"
                     placeholder="https://example.com/movie.mp4"
@@ -221,6 +234,7 @@ export const Layout: FC<PropsWithChildren<Props>> = ({
                     )}
                   </button>
                 </div>
+
               </Form>
             )}
           </Formik>

@@ -72,7 +72,7 @@ const PageComponent: FC<PropsWithChildren<Props>> = ({
                   </div>
                 </div>
               ) : room ? (
-                <WebSocketProvider roomId={room.id}>
+                <WebSocketProvider roomId={room.id} userId={sessionData.user.id} userName={sessionData.user.name || undefined}>
                   <Layout user={sessionData.user} room={room}>
                     {children}
                   </Layout>

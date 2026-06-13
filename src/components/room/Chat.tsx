@@ -13,7 +13,7 @@ import { useAppContext } from "../../context/AppContext";
 import { ChatBubble } from "./ChatBubble";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { ReactionBarSelector } from "@charkour/react-reactions";
-import { useWebSocket } from "../../context/WebSocketContext";
+import { useWebSocket, type PresenceUser } from "../../context/WebSocketContext";
 import { toast } from "react-hot-toast";
 
 const sound = "/audio/message.wav";
@@ -34,7 +34,7 @@ export const Chat: FC<Props> = ({ room }) => {
   /* -------------------------------------------------------------------------- */
   const { data: session } = useSession();
   const { fullscreen, darkMode } = useAppContext();
-  const { sendBroadcast, subscribe: subscribeWS } = useWebSocket();
+  const { sendBroadcast, subscribe: subscribeWS, connectedUsers } = useWebSocket();
 
   /* -------------------------------------------------------------------------- */
   /*                                   STATES                                   */
@@ -42,6 +42,8 @@ export const Chat: FC<Props> = ({ room }) => {
   const [chats, setChats] = useState<ChatWithUser[]>([]);
   const [firstChatsFetched, setFirstChatsFetched] = useState<boolean>(false);
   const [showEmojis, setShowEmojis] = useState<boolean>(false);
+  const [showPresenceList, setShowPresenceList] = useState<boolean>(false);
+  const prevUsersRef = useRef<PresenceUser[]>([]);
 
   /* -------------------------------------------------------------------------- */
   /*                                    REFS                                    */
@@ -56,6 +58,56 @@ export const Chat: FC<Props> = ({ room }) => {
   useEffect(() => {
     chatContainerEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chats, fullscreen]);
+
+  // Detect join/leave events from presence changes
+  useEffect(() => {
+    const prevIds = new Set(prevUsersRef.current.map(u => u.id));
+    const currIds = new Set(connectedUsers.map(u => u.id));
+
+    // Find joins
+    for (const user of connectedUsers) {
+      if (!prevIds.has(user.id) && user.id !== session?.user?.id) {
+        toast(`${user.name || 'Someone'} joined`, {
+          icon: '🟢',
+          duration: 2500,
+          position: 'top-center',
+          style: {
+            background: darkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            color: darkMode ? '#a5f3fc' : '#0f766e',
+            backdropFilter: 'blur(12px)',
+            border: darkMode ? '1px solid rgba(34,211,238,0.15)' : '1px solid rgba(20,184,166,0.2)',
+            borderRadius: '999px',
+            padding: '6px 16px',
+            fontWeight: '600',
+            fontSize: '13px',
+          },
+        });
+      }
+    }
+
+    // Find leaves
+    for (const user of prevUsersRef.current) {
+      if (!currIds.has(user.id) && user.id !== session?.user?.id) {
+        toast(`${user.name || 'Someone'} left`, {
+          icon: '🔴',
+          duration: 2500,
+          position: 'top-center',
+          style: {
+            background: darkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            color: darkMode ? '#fca5a5' : '#b91c1c',
+            backdropFilter: 'blur(12px)',
+            border: darkMode ? '1px solid rgba(248,113,113,0.15)' : '1px solid rgba(239,68,68,0.2)',
+            borderRadius: '999px',
+            padding: '6px 16px',
+            fontWeight: '600',
+            fontSize: '13px',
+          },
+        });
+      }
+    }
+
+    prevUsersRef.current = connectedUsers;
+  }, [connectedUsers, session?.user?.id, darkMode]);
 
   useEffect(() => {
     const unsubscribe = subscribeWS("CHAT_CREATED", (payload: unknown) => {
@@ -145,15 +197,97 @@ export const Chat: FC<Props> = ({ room }) => {
     <div className="flex flex-col h-full w-full overflow-hidden relative">
       <audio ref={audioPlayer} src={sound} />
       
-      {/* Chat Header */}
+      {/* Chat Header with Connected Users */}
       {!fullscreen && (
-        <div className="pb-2 mb-2 border-b border-base-300 flex items-center justify-between shrink-0">
-          <span className="font-bold text-sm tracking-tight flex items-center gap-1.5">
-            💬 Live Chat
-          </span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-semibold">
-            Connected
-          </span>
+        <div className="pb-2 mb-2 border-b border-base-300 shrink-0">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-sm tracking-tight flex items-center gap-1.5">
+              💬 Live Chat
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowPresenceList(!showPresenceList)}
+              className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold transition-all duration-200 cursor-pointer ${
+                showPresenceList
+                  ? darkMode
+                    ? 'bg-cyan-500/15 text-cyan-400 ring-1 ring-cyan-500/30'
+                    : 'bg-teal-500/15 text-teal-600 ring-1 ring-teal-500/30'
+                  : darkMode
+                    ? 'bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20'
+                    : 'bg-teal-500/10 text-teal-600 hover:bg-teal-500/20'
+              }`}
+            >
+              {/* Stacked Avatars */}
+              <div className="flex -space-x-1.5">
+                {connectedUsers.slice(0, 3).map((u) => (
+                  <div
+                    key={u.id}
+                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold ring-1 ${
+                      darkMode
+                        ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white ring-slate-900'
+                        : 'bg-gradient-to-br from-teal-400 to-emerald-500 text-white ring-white'
+                    }`}
+                    title={u.name}
+                  >
+                    {(u.name || '?')[0]?.toUpperCase()}
+                  </div>
+                ))}
+              </div>
+              <span className="tabular-nums">{connectedUsers.length}</span>
+              <span className="hidden sm:inline">online</span>
+              <svg
+                className={`w-3 h-3 transition-transform duration-200 ${
+                  showPresenceList ? 'rotate-180' : ''
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Expandable Presence List */}
+          {showPresenceList && (
+            <div className={`mt-2 p-2 rounded-xl border animate-fade-in max-h-32 overflow-y-auto scrollbar-hide ${
+              darkMode
+                ? 'bg-slate-900/60 border-slate-800'
+                : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className="flex flex-wrap gap-1.5">
+                {connectedUsers.map((u) => (
+                  <div
+                    key={u.id}
+                    className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium transition-all ${
+                      u.id === session?.user?.id
+                        ? darkMode
+                          ? 'bg-cyan-500/20 text-cyan-300 ring-1 ring-cyan-500/30'
+                          : 'bg-teal-500/20 text-teal-700 ring-1 ring-teal-500/30'
+                        : darkMode
+                          ? 'bg-slate-800/80 text-slate-300'
+                          : 'bg-white text-slate-700 shadow-sm'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                      darkMode
+                        ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white'
+                        : 'bg-gradient-to-br from-teal-400 to-emerald-500 text-white'
+                    }`}>
+                      {(u.name || '?')[0]?.toUpperCase()}
+                    </div>
+                    <span className="max-w-[80px] truncate">
+                      {u.id === session?.user?.id ? 'You' : (u.name || 'User')}
+                    </span>
+                    {u.id === session?.user?.id && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
